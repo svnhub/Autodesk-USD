@@ -32,6 +32,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 
 TfToken UsdMayaGLVp2ShadowShader();
 TfToken UsdMayaGLVp2LightingShader();
+TfToken UsdMayaGLVp2SsaoShader();
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

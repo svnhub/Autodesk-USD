@@ -55,13 +55,9 @@ PXR_NAMESPACE_OPEN_SCOPE
 
 HdStShaderCodeSharedPtr UsdMayaGL_Vp2Task::_overrideShader;
 
-TfToken UsdMayaGL_Vp2Task::GetToken()
-{
-    static const TfToken token("vp2ShadowTask");
-    return token;
-}
-
-UsdMayaGL_Vp2Task::UsdMayaGL_Vp2Task(HdSceneDelegate* delegate, SdfPath const& id)
+UsdMayaGL_Vp2Task::UsdMayaGL_Vp2Task(
+    HdSceneDelegate* delegate, SdfPath const& id, TfToken glslfxPath
+)
     : HdTask(id)
     , _renderPass(
         &delegate->GetRenderIndex(),
@@ -71,7 +67,7 @@ UsdMayaGL_Vp2Task::UsdMayaGL_Vp2Task(HdSceneDelegate* delegate, SdfPath const& i
         )
     )
     , _renderPassState(boost::make_shared<HdStRenderPassState>(
-        boost::make_shared<HdStRenderPassShader>(UsdMayaGLVp2ShadowShader())
+        boost::make_shared<HdStRenderPassShader>(glslfxPath)
     ))
 {
 }
@@ -114,10 +110,6 @@ UsdMayaGL_Vp2Task::Sync(HdSceneDelegate* delegate,
     const float TRANSPARENT_ALPHA_THRESHOLD = (1.0f - 1e-6f);
     _renderPassState->SetAlphaThreshold(TRANSPARENT_ALPHA_THRESHOLD);
 
-    // But if it is not then we still have to make sure we don't
-    // buffer overrun here.
-    
-    // Move the camera to the correct position to take the shadow map
     const auto camera = static_cast<const HdCamera*>(
         renderIndex.GetSprim(HdPrimTypeTokens->camera, _params.camera));
 
@@ -181,10 +173,19 @@ UsdMayaGL_Vp2Task::Execute(HdTaskContext* ctx)
     glDepthFunc(HdStGLConversions::GetGlDepthFunc(_params.depthFunc));
     glEnable(GL_PROGRAM_POINT_SIZE);
 
+    const bool disableSrgb =
+        _params.disableSrgb && glIsEnabled(GL_FRAMEBUFFER_SRGB_EXT);
+
+    if (disableSrgb)
+        glDisable(GL_FRAMEBUFFER_SRGB_EXT);
+
     // Render the actual geometry in the collection
     _renderPass.Execute(
         _renderPassState,
         SHADOW_RENDER_TAGS);
+
+    if (disableSrgb)
+        glEnable(GL_FRAMEBUFFER_SRGB_EXT);
 
     // restore GL states to default
     glDisable(GL_PROGRAM_POINT_SIZE);

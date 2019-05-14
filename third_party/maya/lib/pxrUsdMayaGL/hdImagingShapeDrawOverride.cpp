@@ -32,6 +32,7 @@
 #include "usdMaya/hdImagingShape.h"
 
 #include "pxr/base/tf/debug.h"
+#include "pxr/base/tf/getenv.h"
 #include "pxr/base/tf/stringUtils.h"
 
 #include <maya/MBoundingBox.h>
@@ -75,6 +76,15 @@ PxrMayaHdImagingShapeDrawOverride::supportedDrawAPIs() const
 #else
     return MHWRender::kOpenGL;
 #endif
+}
+
+bool
+PxrMayaHdImagingShapeDrawOverride::excludedFromPostEffects() const
+{
+    static bool enablePostFX =
+        TfGetenvBool("PXR_USDMAYAGL_ENABLE_POSTFX", false);
+
+    return !enablePostFX;
 }
 
 /* virtual */

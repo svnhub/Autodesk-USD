@@ -112,6 +112,9 @@ class PxrMayaHdSceneDelegate : public HdSceneDelegate
             _valueCacheMap[id][key] = value;
         }
 
+        template<typename TASK_PARAMS>
+        void _SetTaskViewport(const SdfPath& id);
+
     private:
         SdfPath _rootId;
 
@@ -127,6 +130,7 @@ class PxrMayaHdSceneDelegate : public HdSceneDelegate
         GlfSimpleLightingContextRefPtr _lightingContext;
 
         SdfPath _shadowTaskId;
+        SdfPath _ssaoTaskId;
 
         typedef std::unordered_map<size_t, SdfPath> _RenderTaskIdMap;
         _RenderTaskIdMap _renderSetupTaskIdMap;

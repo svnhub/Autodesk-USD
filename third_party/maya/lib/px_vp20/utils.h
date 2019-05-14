@@ -52,10 +52,11 @@ class px_vp20Utils
     public:
         enum class Vp2Pass
         {
-            kShadowMap,
-            kColor,
+            kNone,
             kOther,
-            kNone
+            kColor,
+            kShadowMap,
+            kSSAO
         };
 
         enum class ShadowMapTechnique

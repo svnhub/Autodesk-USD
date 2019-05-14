@@ -60,6 +60,7 @@ pxr_shared_library(${PXR_PACKAGE}
     RESOURCE_FILES
         plugInfo.json
         shaders/renderPassVp2ShadowShader.glslfx
+        shaders/renderPassVp2SsaoShader.glslfx
         shaders/vp2LightingShader.glslfx
 
     DISABLE_PRECOMPILED_HEADERS

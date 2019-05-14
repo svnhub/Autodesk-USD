@@ -58,5 +58,12 @@ UsdMayaGLVp2LightingShader()
     return shader;
 }
 
+TfToken
+UsdMayaGLVp2SsaoShader()
+{
+    static TfToken shader = _GetShaderPath("renderPassVp2SsaoShader.glslfx");
+    return shader;
+}
+
 PXR_NAMESPACE_CLOSE_SCOPE
 

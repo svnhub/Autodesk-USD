@@ -55,6 +55,7 @@ struct UsdMayaGL_Vp2TaskParams
         , enableLighting(false)
         , enableIdRender(false)
         , enableSceneMaterials(true)
+        , disableSrgb(false)
         , alphaThreshold(0.0)
         , depthBiasEnable(false)
         , depthBiasConstantFactor(0.0f)
@@ -73,6 +74,7 @@ struct UsdMayaGL_Vp2TaskParams
     bool enableLighting;
     bool enableIdRender;
     bool enableSceneMaterials;
+    bool disableSrgb;
     float alphaThreshold;
     bool  depthBiasEnable;
     float depthBiasConstantFactor;
@@ -96,7 +98,9 @@ struct UsdMayaGL_Vp2TaskParams
 class UsdMayaGL_Vp2Task : public HdTask
 {
 public:
-    UsdMayaGL_Vp2Task(HdSceneDelegate* delegate, SdfPath const& id);
+    UsdMayaGL_Vp2Task(
+        HdSceneDelegate* delegate, SdfPath const& id, TfToken glslfxPath
+    );
 
     ~UsdMayaGL_Vp2Task() override;
 
@@ -107,8 +111,6 @@ public:
 
     /// Execute render pass task
     void Execute(HdTaskContext* ctx) override;
-
-    static TfToken GetToken();
 
 private:
     void _SetHdStRenderPassState(UsdMayaGL_Vp2TaskParams const &params,

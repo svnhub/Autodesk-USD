@@ -41,7 +41,7 @@ vec4 ApplyColorOverridesPostLighting(vec4 color)
     return color;
 }
 
-void RenderColor(vec4 color)
+void RenderColor(vec4 color, vec3 Peye, vec3 Neye)
 {
     colorOut = color;
 }
@@ -88,7 +88,7 @@ vec4 ApplyColorOverridesPostLighting(vec4 color)
 
 layout (location = 0) out vec4 colorOut;
 
-void RenderColor(vec4 color)
+void RenderColor(vec4 color, vec3 Peye, vec3 Neye)
 {
     colorOut = color;
 }
@@ -130,7 +130,7 @@ bool IsFragmentOnEdge(); // defined in edgeId.glslfx, or generated via codeGen
 int GetPointId(); // defined in pointId.glslfx
 bool IsFragmentOnPoint(); // defined in pointId.glslfx
 
-void RenderColor(vec4 color)
+void RenderColor(vec4 color, vec3 Peye, vec3 Neye)
 {
     int primId = HdGet_primID();
     primIdOut = IntToVec4(primId);

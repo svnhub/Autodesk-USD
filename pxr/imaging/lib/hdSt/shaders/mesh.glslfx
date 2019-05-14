@@ -558,5 +558,5 @@ void main(void)
         discard;
     }
 
-    RenderColor(color);
+    RenderColor(color, Peye, Neye);
 }

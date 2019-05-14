@@ -73,6 +73,9 @@ class PxrMayaHdImagingShapeDrawOverride : public MHWRender::MPxDrawOverride
         MHWRender::DrawAPI supportedDrawAPIs() const override;
 
         PXRUSDMAYAGL_API
+        bool excludedFromPostEffects() const override;
+
+        PXRUSDMAYAGL_API
         MMatrix transform(
                 const MDagPath& objPath,
                 const MDagPath& cameraPath) const override;

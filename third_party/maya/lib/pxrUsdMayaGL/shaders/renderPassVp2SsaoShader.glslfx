@@ -30,9 +30,9 @@
 #import $TOOLS/hdSt/shaders/renderPass.glslfx
 #import $TOOLS/hdx/shaders/renderPass.glslfx
 
--- glsl UsdMayaRenderPass.RenderColorShadowsOutput
+-- glsl UsdMayaRenderPass.RenderColorSsaoOutput
 
-layout (location = 0) out vec4 colorOut;
+layout(location = 0) out vec4 oMRT[2];
 
 vec4 ApplyColorOverrides(vec4 color)
 {
@@ -46,7 +46,10 @@ vec4 ApplyColorOverridesPostLighting(vec4 color)
 
 void RenderColor(vec4 color, vec3 Peye, vec3 Neye)
 {
-    colorOut = vec4(gl_FragCoord.z);
+    Neye.z = -Neye.z;
+    Peye.z = -Peye.z;
+    oMRT[0] = vec4((Neye + 1.0) * 0.5, 0.0);
+    oMRT[1] = Peye.zzzz;
 }
 
 -- configuration
@@ -72,7 +75,7 @@ void RenderColor(vec4 color, vec3 Peye, vec3 Neye)
             "fragmentShader" : {
                 "source": [ "RenderPass.Camera",
                             "RenderPass.ShouldCullFace",
-                            "UsdMayaRenderPass.RenderColorShadowsOutput" ]
+                            "UsdMayaRenderPass.RenderColorSsaoOutput" ]
             }
         }
     }

@@ -162,8 +162,11 @@ PxrMayaHdSceneDelegate::PxrMayaHdSceneDelegate(
     }
 
     case px_vp20Utils::ShadowMapTechnique::kVp2Task: {
-        _shadowTaskId = _rootId.AppendChild(UsdMayaGL_Vp2Task::GetToken());
-        renderIndex->InsertTask<UsdMayaGL_Vp2Task>(this, _shadowTaskId);
+        static const TfToken vp2ShadowTaskToken("vp2ShadowTask");
+        _shadowTaskId = _rootId.AppendChild(vp2ShadowTaskToken);
+        renderIndex->InsertTask<UsdMayaGL_Vp2Task>(
+            this, _shadowTaskId, UsdMayaGLVp2ShadowShader()
+        );
         _ValueCache& cache = _valueCacheMap[_shadowTaskId];
         UsdMayaGL_Vp2TaskParams taskParams;
         taskParams.camera = _cameraId;
@@ -176,6 +179,21 @@ PxrMayaHdSceneDelegate::PxrMayaHdSceneDelegate(
         TF_CODING_ERROR("Unknown shadow mapping technique");
         break;
     }
+
+    static const TfToken vp2SsaoTaskToken("vp2SsaoTask");
+    _ssaoTaskId = _rootId.AppendChild(vp2SsaoTaskToken);
+    renderIndex->InsertTask<UsdMayaGL_Vp2Task>(
+        this, _ssaoTaskId, UsdMayaGLVp2SsaoShader()
+    );
+    _ValueCache& cache = _valueCacheMap[_ssaoTaskId];
+    UsdMayaGL_Vp2TaskParams taskParams;
+    taskParams.camera = _cameraId;
+    taskParams.viewport = _viewport;
+
+    // Maya erroneously writes normals to an SRGB render target
+    // which is not a problem if GL_FRAMEBUFFER_SRGB_EXT is off.
+    taskParams.disableSrgb = true;
+    cache[HdTokens->params] = VtValue(taskParams);
 }
 
 /*virtual*/
@@ -193,6 +211,22 @@ PxrMayaHdSceneDelegate::Get(const SdfPath& id, const TfToken& key)
                     key.GetText());
 
     return VtValue();
+}
+
+template<typename TASK_PARAMS>
+void
+PxrMayaHdSceneDelegate::_SetTaskViewport(const SdfPath& id)
+{
+    auto taskParams = _GetValue<TASK_PARAMS>(
+        id, HdTokens->params
+    );
+
+    taskParams.viewport = decltype(taskParams.viewport)(_viewport);
+    _SetValue(id, HdTokens->params, taskParams);
+
+    GetRenderIndex().GetChangeTracker().MarkTaskDirty(
+        id,
+        HdChangeTracker::DirtyParams);
 }
 
 void
@@ -214,65 +248,27 @@ PxrMayaHdSceneDelegate::SetCameraState(
     if (_viewport != viewport) {
         _viewport = viewport;
 
-        // Update the simple light task.
-        HdxSimpleLightTaskParams simpleLightTaskParams =
-            _GetValue<HdxSimpleLightTaskParams>(_simpleLightTaskId,
-                                                HdTokens->params);
-
-        simpleLightTaskParams.viewport = GfVec4f(_viewport);
-        _SetValue(_simpleLightTaskId, HdTokens->params, simpleLightTaskParams);
-
-        GetRenderIndex().GetChangeTracker().MarkTaskDirty(
-            _simpleLightTaskId,
-            HdChangeTracker::DirtyParams);
+        _SetTaskViewport<HdxSimpleLightTaskParams>(_simpleLightTaskId);
 
         // Update the shadow task.
         switch (_shadowMapTechnique) {
             case px_vp20Utils::ShadowMapTechnique::kHdxShadowTask: {
-                auto shadowTaskParams = _GetValue<HdxShadowTaskParams>(
-                    _shadowTaskId, HdTokens->params
-                );
-
-                shadowTaskParams.viewport = _viewport;
-                _SetValue(_shadowTaskId, HdTokens->params, shadowTaskParams);
-
-                GetRenderIndex().GetChangeTracker().MarkTaskDirty(
-                    _shadowTaskId,
-                    HdChangeTracker::DirtyParams);
+                _SetTaskViewport<HdxShadowTaskParams>(_shadowTaskId);
                 break;
             }
             case px_vp20Utils::ShadowMapTechnique::kVp2Task: {
-                auto shadowTaskParams = _GetValue<UsdMayaGL_Vp2TaskParams>(
-                     _shadowTaskId, HdTokens->params
-                );
-
-                shadowTaskParams.viewport = _viewport;
-                _SetValue(_shadowTaskId, HdTokens->params, shadowTaskParams);
-
-                GetRenderIndex().GetChangeTracker().MarkTaskDirty(
-                    _shadowTaskId,
-                    HdChangeTracker::DirtyParams);
+                _SetTaskViewport<UsdMayaGL_Vp2TaskParams>(_shadowTaskId);
                 break;
             }
             default:;
         }
 
+        _SetTaskViewport<UsdMayaGL_Vp2TaskParams>(_ssaoTaskId);
+
         // Update all render setup tasks.
         for (const auto& it : _renderSetupTaskIdMap) {
             const SdfPath& renderSetupTaskId = it.second;
-
-            HdxRenderTaskParams renderSetupTaskParams =
-                _GetValue<HdxRenderTaskParams>(renderSetupTaskId,
-                                               HdTokens->params);
-
-            renderSetupTaskParams.viewport = _viewport;
-            _SetValue(renderSetupTaskId,
-                      HdTokens->params,
-                      renderSetupTaskParams);
-
-            GetRenderIndex().GetChangeTracker().MarkTaskDirty(
-                renderSetupTaskId,
-                HdChangeTracker::DirtyParams);
+            _SetTaskViewport<HdxRenderTaskParams>(renderSetupTaskId);
         }
     }
 }
@@ -307,15 +303,17 @@ PxrMayaHdSceneDelegate::SetLightingStateFromMayaDrawContext(
 
     _currentVp2Pass = px_vp20Utils::Vp2Pass::kOther;
 
+    // assume semantic precedence based on the order of px_vp20Utils::Vp2Pass values
     for (unsigned int i = 0u; i < passSemantics.length(); ++i) {
         if (passSemantics[i] == MHWRender::MPassContext::kColorPassSemantic) {
-            _currentVp2Pass = px_vp20Utils::Vp2Pass::kColor;
-            break;
+            _currentVp2Pass = std::max(_currentVp2Pass, px_vp20Utils::Vp2Pass::kColor);
         }
         else if (passSemantics[i] == MHWRender::MPassContext::kShadowPassSemantic
             || passSemantics[i] == MHWRender::MPassContext::kPointLightShadowPassSemantic ) {
-            _currentVp2Pass = px_vp20Utils::Vp2Pass::kShadowMap;
-            break;
+            _currentVp2Pass = std::max(_currentVp2Pass, px_vp20Utils::Vp2Pass::kShadowMap);
+        }
+        else if (passSemantics[i] == MHWRender::MPassContext::kNormalDepthPassSemantic) {
+            _currentVp2Pass = std::max(_currentVp2Pass, px_vp20Utils::Vp2Pass::kSSAO);
         }
     }
 
@@ -466,6 +464,10 @@ PxrMayaHdSceneDelegate::GetSetupTasks()
     case px_vp20Utils::Vp2Pass::kShadowMap:
         if (_shadowMapTechnique == px_vp20Utils::ShadowMapTechnique::kVp2Task)
             push(_shadowTaskId);
+        break;
+
+    case px_vp20Utils::Vp2Pass::kSSAO:
+        push(_ssaoTaskId);
         break;
     default:;
     }

@@ -34,6 +34,7 @@
 
 #include "pxr/base/gf/matrix4d.h"
 #include "pxr/base/gf/vec3f.h"
+#include "pxr/base/tf/getenv.h"
 #include "pxr/base/tf/stringUtils.h"
 #include "pxr/imaging/hdx/intersector.h"
 
