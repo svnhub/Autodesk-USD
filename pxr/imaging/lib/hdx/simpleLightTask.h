@@ -50,13 +50,16 @@ typedef boost::shared_ptr<class HdRenderPass> HdRenderPassSharedPtr;
 typedef boost::shared_ptr<class HdxSimpleLightingShader> HdxSimpleLightingShaderSharedPtr;
 typedef boost::shared_ptr<class HdxShadowMatrixComputation> HdxShadowMatrixComputationSharedPtr;
 
-TF_DECLARE_REF_PTRS(GlfSimpleShadowArray);
+TF_DECLARE_REF_PTRS(GlfShadowSource);
 
 
 class HdxSimpleLightTask : public HdTask {
 public:
     HDX_API
-    HdxSimpleLightTask(HdSceneDelegate* delegate, SdfPath const& id);
+    HdxSimpleLightTask(
+        HdSceneDelegate* delegate,
+        SdfPath const& id,
+        TfToken glslfxOverridePath = TfToken());
 
     HDX_API
     virtual ~HdxSimpleLightTask();
@@ -90,7 +93,7 @@ private:
 
     // For now these are only valid for the lifetime of a single pass of
     // the render graph.  Maybe long-term these could be change-tracked.
-    GlfSimpleShadowArrayRefPtr _shadows;
+	GlfShadowSourceRefPtr _shadows;
     GlfSimpleLightVector _glfSimpleLights;
 
     size_t _AppendLightsOfType(HdRenderIndex &renderIndex,
@@ -125,6 +128,10 @@ struct HdxSimpleLightTaskParams {
     //      more formal material plumbing.
     GlfSimpleMaterial material;
     GfVec4f sceneAmbient;
+
+    // If set, this shadow source will override the default one on the lighting
+    // task.
+    GlfShadowSourceRefPtr overrideShadows;
 };
 
 // VtValue requirements

@@ -1219,23 +1219,25 @@ UsdMayaGLBatchRenderer::_Render(
 
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-    // render task setup
-    HdTaskSharedPtrVector tasks = _taskDelegate->GetSetupTasks(); // lighting etc
+    HdTaskSharedPtrVector tasks = 
+        _taskDelegate->GetSetupTasks(); // lighting, shadowing etc.
 
-    for (const auto& iter : items) {
-        const PxrMayaHdRenderParams& params = iter.first;
-        const size_t paramsHash = params.Hash();
+    if (_taskDelegate->GetCurrentVp2Pass() == px_vp20Utils::Vp2Pass::kColor) {
+        for (const auto& iter : items) {
+            const PxrMayaHdRenderParams& params = iter.first;
+            const size_t paramsHash = params.Hash();
 
-        const HdRprimCollectionVector& rprimCollections = iter.second;
+            const HdRprimCollectionVector& rprimCollections = iter.second;
 
-        TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
-            "    *** renderBucket, parameters hash: %zu, bucket size %zu\n",
-            paramsHash,
-            rprimCollections.size());
+            TF_DEBUG(PXRUSDMAYAGL_BATCHED_DRAWING).Msg(
+                "    *** renderBucket, parameters hash: %zu, bucket size %zu\n",
+                paramsHash,
+                rprimCollections.size());
 
-        HdTaskSharedPtrVector renderTasks =
-            _taskDelegate->GetRenderTasks(paramsHash, params, rprimCollections);
-        tasks.insert(tasks.end(), renderTasks.begin(), renderTasks.end());
+            HdTaskSharedPtrVector renderTasks =
+                _taskDelegate->GetRenderTasks(paramsHash, params, rprimCollections);
+            tasks.insert(tasks.end(), renderTasks.begin(), renderTasks.end());
+        }
     }
 
     VtValue selectionTrackerValue(_selectionTracker);

@@ -75,6 +75,25 @@ computeShadowFilterWidth(vec4 Peye)
 
 #endif  // NUM_LIGHTS == 0
 
+-- glsl SimpleLighting.ShadowSampling
+
+// ---------------------------------------------------------------------------
+// textures
+// ---------------------------------------------------------------------------
+
+#if NUM_LIGHTS > 0
+
+uniform sampler2DArray shadowTexture;
+uniform sampler2DArrayShadow shadowCompareTexture;
+
+float
+shadowCompare(int index, vec4 coord)
+{
+    return texture(shadowCompareTexture,
+                   vec4(coord.x/coord.w, coord.y/coord.w, index, coord.z));
+}
+#endif
+
 -- glsl SimpleLighting.LightIntegrator
 
 // ---------------------------------------------------------------------------
@@ -157,12 +176,6 @@ computeShadowFilterWidth(int index, vec4 Peye)
 #endif  // NUM_LIGHTS == 0
 
 // ---------------------------------------------------------------------------
-// textures
-// ---------------------------------------------------------------------------
-uniform sampler2DArray shadowTexture;
-uniform sampler2DArrayShadow shadowCompareTexture;
-
-// ---------------------------------------------------------------------------
 // lighting functions
 // ---------------------------------------------------------------------------
 
@@ -173,7 +186,7 @@ integrateLightsConstant(vec4 Peye, vec3 Neye, LightingInterfaceProperties props)
 {
     LightingContribution result;
     result.ambient = vec3(0.0);
-    //pefectly diffuse white hemisphere contribution
+    //perfectly diffuse white hemisphere contribution
     result.diffuse = vec3(1.0);
     result.specular = vec3(0.0);
 
@@ -187,13 +200,6 @@ integrateLightsDefault(vec4 Peye, vec3 Neye, LightingInterfaceProperties props)
 }
 
 #else // NUM_LIGHTS == 0
-
-float
-shadowCompare(int index, vec4 coord)
-{
-    return texture(shadowCompareTexture,
-                   vec4(coord.x/coord.w, coord.y/coord.w, index, coord.z));
-}
 
 #ifndef SHADOW_FILTER
 float
@@ -209,7 +215,7 @@ shadowing(int index, vec4 Peye)
     float result = 1.0;
     vec4 coord = shadow[index].eyeToShadowMatrix * Peye;
 
-    // coord.xy : homogenous shadow uv coordinate
+    // coord.xy : homogeneous shadow uv coordinate
     // coord.z : cartesian receiver depth
     // coord.w : shadow projection w
 

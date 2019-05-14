@@ -30,6 +30,38 @@
 #import $TOOLS/glf/shaders/pcfShader.glslfx
 #import $TOOLS/glf/shaders/simpleLighting.glslfx
 
+-- glsl UsdMayaLighting.ShadowSampling
+
+// ---------------------------------------------------------------------------
+// textures
+// ---------------------------------------------------------------------------
+
+#ifndef NUM_SHADOWS
+#define NUM_SHADOWS 0
+#endif
+
+#if NUM_SHADOWS > 0
+
+uniform sampler2D shadowTextures[NUM_SHADOWS];
+
+float
+shadowCompare(int index, vec4 coord)
+{
+    float depthSample = texture(shadowTextures[index],
+                    	vec2(coord.x/coord.w, coord.y/coord.w)).r;
+    return float(depthSample > coord.z);
+}
+
+#else
+
+float
+shadowCompare(int index, vec4 coord)
+{
+    return 1.0f;
+}
+
+#endif
+
 -- configuration
 {
     "techniques": {
@@ -37,7 +69,7 @@
             "fragmentShader" : {
                 "source": [
                     "PCF.ShadowFilterFragmentOnly",
-                    "SimpleLighting.ShadowSampling",
+                    "UsdMayaLighting.ShadowSampling",
                     "SimpleLighting.LightIntegrator",
                     "SimpleLighting.SimpleLighting",
                     "LightingOverride.SimpleLighting"

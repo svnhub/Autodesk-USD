@@ -44,6 +44,8 @@
 #include "pxr/imaging/hd/task.h"
 #include "pxr/usd/sdf/path.h"
 
+#include "px_vp20/utils.h"
+
 #include <maya/MDrawContext.h>
 
 #include <memory>
@@ -84,6 +86,9 @@ class PxrMayaHdSceneDelegate : public HdSceneDelegate
 
         PXRUSDMAYAGL_API
         HdTaskSharedPtrVector GetSetupTasks();
+        
+        PXRUSDMAYAGL_API
+        px_vp20Utils::Vp2Pass GetCurrentVp2Pass() const { return _currentVp2Pass; }
 
         PXRUSDMAYAGL_API
         HdTaskSharedPtrVector GetRenderTasks(
@@ -115,6 +120,10 @@ class PxrMayaHdSceneDelegate : public HdSceneDelegate
 
         SdfPath _simpleLightTaskId;
         SdfPathVector _lightIds;
+
+        // This is a separate instance of light context from the one owned by
+        // the lighting task. This one is used to store lighting parameters
+        // retrieved from Maya.
         GlfSimpleLightingContextRefPtr _lightingContext;
 
         SdfPath _shadowTaskId;
@@ -127,6 +136,10 @@ class PxrMayaHdSceneDelegate : public HdSceneDelegate
         typedef TfHashMap<TfToken, VtValue, TfToken::HashFunctor> _ValueCache;
         typedef TfHashMap<SdfPath, _ValueCache, SdfPath::Hash> _ValueCacheMap;
         _ValueCacheMap _valueCacheMap;
+
+        px_vp20Utils::Vp2Pass _currentVp2Pass = px_vp20Utils::Vp2Pass::kNone;
+
+        const px_vp20Utils::ShadowMapTechnique _shadowMapTechnique;
 };
 
 typedef std::shared_ptr<PxrMayaHdSceneDelegate> PxrMayaHdSceneDelegateSharedPtr;

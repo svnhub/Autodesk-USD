@@ -28,28 +28,38 @@
 
 #include "pxr/pxr.h"
 #include "pxr/imaging/glf/api.h"
-#include "pxr/base/tf/declarePtrs.h"
-#include "pxr/base/tf/refPtr.h"
-#include "pxr/base/tf/weakPtr.h"
-#include "pxr/base/gf/matrix4d.h"
 #include "pxr/base/gf/vec2i.h"
 #include "pxr/base/gf/vec4d.h"
 #include "pxr/imaging/garch/gl.h"
-
-#include <boost/noncopyable.hpp>
-#include <vector>
+#include "pxr/imaging/glf/shadowSource.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-
-class GlfSimpleShadowArray : public TfRefBase,
-                             public TfWeakBase,
-                             boost::noncopyable {
+class GlfSimpleShadowArray : public GlfShadowSource
+{
 public:
     GLF_API
-    GlfSimpleShadowArray(GfVec2i const & size, size_t numLayers);
+    GlfSimpleShadowArray(GfVec2i const & size);
     GLF_API
-    virtual ~GlfSimpleShadowArray();
+    ~GlfSimpleShadowArray() override;
+
+    GLF_API
+    void InitResourceBindings(GlfBindingMapPtr const &bindingMap) override;
+
+    GLF_API
+    void BindResources(GlfBindingMapPtr const &bindingMap) override;
+    GLF_API
+    void UnbindResources(GlfBindingMapPtr const &bindingMap) override;
+    
+    GLF_API
+    void SetViewMatrix(size_t index, GfMatrix4d const & matrix) override;
+    GLF_API
+    void SetProjectionMatrix(size_t index, GfMatrix4d const & matrix) override;
+
+    GLF_API
+    GfMatrix4d GetWorldToShadowMatrix(size_t index) const override;
+
+    // End of GlfShadowSource overrides
 
     GLF_API
     GfVec2i GetSize() const;
@@ -64,22 +74,7 @@ public:
     GLF_API
     GfMatrix4d GetViewMatrix(size_t index) const;
     GLF_API
-    void SetViewMatrix(size_t index, GfMatrix4d const & matrix);
-
-    GLF_API
     GfMatrix4d GetProjectionMatrix(size_t index) const;
-    GLF_API
-    void SetProjectionMatrix(size_t index, GfMatrix4d const & matrix);
-
-    GLF_API
-    GfMatrix4d GetWorldToShadowMatrix(size_t index) const;
-
-    GLF_API
-    GLuint GetShadowMapTexture() const;
-    GLF_API
-    GLuint GetShadowMapDepthSampler() const;
-    GLF_API
-    GLuint GetShadowMapCompareSampler() const;
 
     GLF_API
     void BeginCapture(size_t index, bool clear);
@@ -97,8 +92,8 @@ private:
     GfVec2i _size;
     size_t _numLayers;
 
-    std::vector<GfMatrix4d> _viewMatrix;
-    std::vector<GfMatrix4d> _projectionMatrix;
+    std::vector<GfMatrix4d> _viewMatrices;
+    std::vector<GfMatrix4d> _projectionMatrices;
 
     GLuint _texture;
     GLuint _framebuffer;

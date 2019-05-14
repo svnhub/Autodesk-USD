@@ -73,6 +73,7 @@ pxr_library(glf
         info
         package
         ptexTexture
+        shadowSource
         simpleLight
         simpleLightingContext
         simpleMaterial

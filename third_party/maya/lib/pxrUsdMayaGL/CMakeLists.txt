@@ -40,6 +40,7 @@ pxr_shared_library(${PXR_PACKAGE}
         hdImagingShapeDrawOverride
         hdImagingShapeUI
         hdRenderer
+        package
         proxyDrawOverride
         proxyShapeUI
         sceneDelegate
@@ -47,6 +48,7 @@ pxr_shared_library(${PXR_PACKAGE}
         softSelectHelper
         usdProxyShapeAdapter
         userData
+        vp2Task
 
     PRIVATE_CLASSES
         instancerImager
@@ -54,6 +56,11 @@ pxr_shared_library(${PXR_PACKAGE}
 
     CPPFILES
         proxyShapeDelegate
+        
+    RESOURCE_FILES
+        plugInfo.json
+        shaders/renderPassVp2ShadowShader.glslfx
+        shaders/vp2LightingShader.glslfx
 
     DISABLE_PRECOMPILED_HEADERS
 )

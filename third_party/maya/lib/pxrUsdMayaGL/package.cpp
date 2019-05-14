@@ -21,14 +21,13 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-/// \file package.cpp
-
-#include "pxr/imaging/glf/package.h"
+#include "pxrUsdMayaGL/package.h"
 
 #include "pxr/base/plug/plugin.h"
 #include "pxr/base/plug/thisPlugin.h"
 #include "pxr/base/tf/diagnostic.h"
 #include "pxr/base/tf/fileUtils.h"
+#include "pxr/base/tf/staticData.h"
 #include "pxr/base/tf/stringUtils.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
@@ -43,6 +42,20 @@ _GetShaderPath(char const * shader)
     TF_VERIFY(!path.empty(), "Could not find shader: %s\n", shader);
 
     return TfToken(path);
+}
+
+TfToken
+UsdMayaGLVp2ShadowShader()
+{
+    static TfToken shader = _GetShaderPath("renderPassVp2ShadowShader.glslfx");
+    return shader;
+}
+
+TfToken
+UsdMayaGLVp2LightingShader()
+{
+    static TfToken shader = _GetShaderPath("vp2LightingShader.glslfx");
+    return shader;
 }
 
 PXR_NAMESPACE_CLOSE_SCOPE

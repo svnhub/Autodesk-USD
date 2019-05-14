@@ -50,6 +50,20 @@ PXR_NAMESPACE_OPEN_SCOPE
 class px_vp20Utils
 {
     public:
+        enum class Vp2Pass
+        {
+            kShadowMap,
+            kColor,
+            kOther,
+            kNone
+        };
+
+        enum class ShadowMapTechnique
+        {
+            kHdxShadowTask,
+            kVp2Task
+        };
+
         /// Take VP2.0 lighting information and import it into opengl lights
         PX_VP20_API
         static bool setupLightingGL(const MHWRender::MDrawContext& context);
@@ -59,7 +73,7 @@ class px_vp20Utils
         /// Translate a Maya MDrawContext into a GlfSimpleLightingContext.
         PX_VP20_API
         static GlfSimpleLightingContextRefPtr GetLightingContextFromDrawContext(
-                const MHWRender::MDrawContext& context);
+                const MHWRender::MDrawContext& context, Vp2Pass, ShadowMapTechnique);
 
         /// Tries to get the viewport for the given draw context.
         ///

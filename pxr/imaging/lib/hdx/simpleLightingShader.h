@@ -57,7 +57,7 @@ typedef boost::shared_ptr<class HdxSimpleLightingShader> HdxSimpleLightingShader
 class HdxSimpleLightingShader : public HdStLightingShader {
 public:
     HDX_API
-    HdxSimpleLightingShader();
+    HdxSimpleLightingShader(TfToken glslfxOverridePath = TfToken());
     HDX_API
     virtual ~HdxSimpleLightingShader();
 
@@ -88,9 +88,9 @@ public:
     };
 
 private:
-    GlfSimpleLightingContextRefPtr _lightingContext; 
-    GlfBindingMapRefPtr _bindingMap;
+    GlfSimpleLightingContextRefPtr _lightingContext;
     bool _useLighting;
+    const TfToken _glslfxPath;
     boost::scoped_ptr<GlfGLSLFX> _glslfx;
 };
 

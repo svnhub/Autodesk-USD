@@ -21,29 +21,18 @@
 // KIND, either express or implied. See the Apache License for the specific
 // language governing permissions and limitations under the Apache License.
 //
-/// \file package.cpp
+#ifndef USD_MAYA_PACKAGE_H
+#define USD_MAYA_PACKAGE_H
 
-#include "pxr/imaging/glf/package.h"
-
-#include "pxr/base/plug/plugin.h"
-#include "pxr/base/plug/thisPlugin.h"
-#include "pxr/base/tf/diagnostic.h"
-#include "pxr/base/tf/fileUtils.h"
-#include "pxr/base/tf/stringUtils.h"
+#include "pxr/pxr.h"
+#include "pxr/imaging/hdx/version.h"
+#include "pxr/base/tf/token.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-
-static TfToken
-_GetShaderPath(char const * shader)
-{
-    static PlugPluginPtr plugin = PLUG_THIS_PLUGIN;
-    const std::string path =
-        PlugFindPluginResource(plugin, TfStringCatPaths("shaders", shader));
-    TF_VERIFY(!path.empty(), "Could not find shader: %s\n", shader);
-
-    return TfToken(path);
-}
+TfToken UsdMayaGLVp2ShadowShader();
+TfToken UsdMayaGLVp2LightingShader();
 
 PXR_NAMESPACE_CLOSE_SCOPE
 
+#endif

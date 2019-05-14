@@ -50,14 +50,18 @@ static const GfVec2i _defaultShadowRes = GfVec2i(1024, 1024);
 
 // -------------------------------------------------------------------------- //
 
-HdxSimpleLightTask::HdxSimpleLightTask(HdSceneDelegate* delegate, SdfPath const& id)
+HdxSimpleLightTask::HdxSimpleLightTask(
+    HdSceneDelegate* delegate,
+    SdfPath const& id,
+    TfToken glslfxOverridePath /*= TfToken()*/
+)
     : HdTask(id) 
     , _cameraId()
     , _lightIds()
     , _lightIncludePaths()
     , _lightExcludePaths()
     , _numLights(0)
-    , _lightingShader(new HdxSimpleLightingShader())
+    , _lightingShader(new HdxSimpleLightingShader(glslfxOverridePath))
     , _enableShadows(false)
     , _viewport(0.0f, 0.0f, 0.0f, 0.0f)
     , _material()
@@ -65,7 +69,7 @@ HdxSimpleLightTask::HdxSimpleLightTask(HdSceneDelegate* delegate, SdfPath const&
     , _shadows()
     , _glfSimpleLights()
 {
-    _shadows = TfCreateRefPtr(new GlfSimpleShadowArray(_defaultShadowRes, 0));
+    _shadows = TfCreateRefPtr(new GlfSimpleShadowArray(_defaultShadowRes));
 }
 
 HdxSimpleLightTask::~HdxSimpleLightTask()
@@ -104,6 +108,9 @@ HdxSimpleLightTask::Sync(HdSceneDelegate* delegate,
         //      more formal material plumbing.
         _material = params.material;
         _sceneAmbient = params.sceneAmbient;
+
+        if (params.overrideShadows)
+            _shadows = params.overrideShadows;
     }
 
     const HdCamera *camera = static_cast<const HdCamera *>(
@@ -170,6 +177,8 @@ HdxSimpleLightTask::Sync(HdSceneDelegate* delegate,
         _glfSimpleLights.reserve(_numLights);
     }
 
+    auto shadowArray = dynamic_cast<GlfSimpleShadowArray*>(&*_shadows);
+
     TF_FOR_ALL (lightPerTypeIt, _lightIds) {
         TF_FOR_ALL (lightPathIt, lightPerTypeIt->second) {
 
@@ -181,7 +190,7 @@ HdxSimpleLightTask::Sync(HdSceneDelegate* delegate,
             }
 
             // Take a copy of the simple light into our temporary array and
-            // update it with viewer-dependant values.
+            // update it with viewer-dependent values.
             VtValue vtLightParams = light->Get(HdLightTokens->params);
                 _glfSimpleLights.push_back(
                     vtLightParams.GetWithDefault<GlfSimpleLight>(GlfSimpleLight()));
@@ -234,7 +243,14 @@ HdxSimpleLightTask::Sync(HdSceneDelegate* delegate,
                 GfMatrix4d shadowMatrix =
                     lightShadowParams.shadowMatrix->Compute(_viewport,
                                                             windowPolicy);
-                glfl.SetShadowIndex(++shadowIndex);
+
+                // If the shadow source is a Glf shadow array then we're about
+                // to allocate shadows and thus can assign shadows to lights
+                // sequentially.
+                ++shadowIndex;
+                if (shadowArray)
+                    glfl.SetShadowIndex(shadowIndex);
+
                 glfl.SetShadowMatrix(shadowMatrix);
                 glfl.SetShadowBias(lightShadowParams.bias);
                 glfl.SetShadowBlur(lightShadowParams.blur);
@@ -257,8 +273,10 @@ HdxSimpleLightTask::Sync(HdSceneDelegate* delegate,
     // the shadow array needed in the lighting context in 
     // order to receive shadows
     // These calls will re-allocate internal buffers if they change.
-    _shadows->SetSize(GfVec2i(maxShadowRes, maxShadowRes));
-    _shadows->SetNumLayers(shadowIndex + 1);
+    if (shadowArray) {
+        shadowArray->SetSize(GfVec2i(maxShadowRes, maxShadowRes));
+        shadowArray->SetNumLayers(shadowIndex + 1);
+    }    
 
     if (shadowIndex > -1) {
         for (size_t lightId = 0; lightId < _numLights; ++lightId) {
@@ -274,6 +292,7 @@ HdxSimpleLightTask::Sync(HdSceneDelegate* delegate,
                 _glfSimpleLights[lightId].GetShadowMatrix());
         }
     }
+
     lightingContext->SetShadows(_shadows);
 
     *dirtyBits = HdChangeTracker::Clean;

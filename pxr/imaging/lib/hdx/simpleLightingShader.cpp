@@ -42,18 +42,18 @@
 PXR_NAMESPACE_OPEN_SCOPE
 
 
-HdxSimpleLightingShader::HdxSimpleLightingShader() 
+HdxSimpleLightingShader::HdxSimpleLightingShader(
+    TfToken glslfxOverridePath /*= TfToken()*/
+)
     : _lightingContext(GlfSimpleLightingContext::New())
-    , _bindingMap(TfCreateRefPtr(new GlfBindingMap()))
     , _useLighting(true)
+    , _glslfxPath(glslfxOverridePath.IsEmpty()
+        ? HdxPackageSimpleLightingShader()
+        : glslfxOverridePath
+    )
 {
-    // TODO: robust binding from codegen
-    _bindingMap->GetUniformBinding(TfToken("GlobalUniform"));
-    _bindingMap->GetUniformBinding(TfToken("DrawDataBuffer"));
-    _lightingContext->InitUniformBlockBindings(_bindingMap);
-    _lightingContext->InitSamplerUnitBindings(_bindingMap);
-
-    _glslfx.reset(new GlfGLSLFX(HdxPackageSimpleLightingShader()));
+    _lightingContext->InitResourceBindings();
+    _glslfx.reset(new GlfGLSLFX(_glslfxPath));
 }
 
 HdxSimpleLightingShader::~HdxSimpleLightingShader()
@@ -66,13 +66,17 @@ HdxSimpleLightingShader::ComputeHash() const
 {
     HD_TRACE_FUNCTION();
 
-    TfToken glslfxFile = HdxPackageSimpleLightingShader();
     size_t numLights = _useLighting ? _lightingContext->GetNumLightsUsed() : 0;
     bool useShadows = _useLighting ? _lightingContext->GetUseShadows() : false;
 
-    size_t hash = glslfxFile.Hash();
+    size_t hash = _glslfxPath.Hash();
     boost::hash_combine(hash, numLights);
     boost::hash_combine(hash, useShadows);
+
+    if (const GlfShadowSourceRefPtr shadows = _lightingContext->GetShadows())
+    {
+        hash = shadows->CombineShaderHash(hash);
+    }
 
     return (ID)hash;
 }
@@ -94,6 +98,11 @@ HdxSimpleLightingShader::GetSource(TfToken const &shaderStageKey) const
     defineStream << "#define NUM_LIGHTS " << numLights<< "\n";
     defineStream << "#define USE_SHADOWS " << (int)(useShadows) << "\n";
 
+	if (const GlfShadowSourceRefPtr shadows = _lightingContext->GetShadows())
+	{
+		shadows->DefineShaderMacros(defineStream);
+	}
+
     return defineStream.str() + source;
 }
 
@@ -107,26 +116,18 @@ HdxSimpleLightingShader::SetCamera(GfMatrix4d const &worldToViewMatrix,
 
 /* virtual */
 void
-HdxSimpleLightingShader::BindResources(HdSt_ResourceBinder const &binder,
+HdxSimpleLightingShader::BindResources(HdSt_ResourceBinder const& /*binder*/,
                                       int program)
-{
-    // XXX: we'd like to use HdSt_ResourceBinder instead of GlfBindingMap.
-    //
-    _bindingMap->AssignUniformBindingsToProgram(program);
-    _lightingContext->BindUniformBlocks(_bindingMap);
-
-    _bindingMap->AssignSamplerUnitsToProgram(program);
-    _lightingContext->BindSamplers(_bindingMap);
+{    
+    _lightingContext->BindResouces(static_cast<GLuint>(program));
 }
 
 /* virtual */
 void
-HdxSimpleLightingShader::UnbindResources(HdSt_ResourceBinder const &binder,
-                                        int program)
+HdxSimpleLightingShader::UnbindResources(HdSt_ResourceBinder const &/*binder*/,
+                                        int /*program*/)
 {
-    // XXX: we'd like to use HdSt_ResourceBinder instead of GlfBindingMap.
-    //
-    _lightingContext->UnbindSamplers(_bindingMap);
+    _lightingContext->UnbindResources();
 }
 
 /*virtual*/

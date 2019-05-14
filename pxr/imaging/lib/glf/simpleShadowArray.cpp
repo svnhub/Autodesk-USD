@@ -30,12 +30,14 @@
 #include "pxr/imaging/glf/diagnostic.h"
 #include "pxr/imaging/glf/glContext.h"
 #include "pxr/imaging/glf/image.h"
+#include "pxr/imaging/glf/bindingMap.h"
 
 #include "pxr/base/arch/fileSystem.h"
 #include "pxr/base/gf/vec2i.h"
 #include "pxr/base/gf/vec4d.h"
 #include "pxr/base/tf/debug.h"
 #include "pxr/base/tf/stringUtils.h"
+#include "pxr/base/tf/staticTokens.h"
 
 #include <string>
 #include <vector>
@@ -43,13 +45,15 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+TF_DEFINE_PRIVATE_TOKENS(
+    _tokens,
+    ((shadowSampler, "shadowTexture"))
+    ((shadowCompareSampler, "shadowCompareTexture"))
+);
 
-GlfSimpleShadowArray::GlfSimpleShadowArray(GfVec2i const & size,
-                                           size_t numLayers) :
+GlfSimpleShadowArray::GlfSimpleShadowArray(GfVec2i const & size) :
     _size(size),
-    _numLayers(numLayers),
-    _viewMatrix(_numLayers),
-    _projectionMatrix(_numLayers),
+    _numLayers(0),
     _texture(0),
     _framebuffer(0),
     _shadowDepthSampler(0),
@@ -90,8 +94,8 @@ void
 GlfSimpleShadowArray::SetNumLayers(size_t numLayers)
 {
     if (_numLayers != numLayers) {
-        _viewMatrix.resize(numLayers, GfMatrix4d().SetIdentity());
-        _projectionMatrix.resize(numLayers, GfMatrix4d().SetIdentity());
+        _viewMatrices.resize(numLayers, GfMatrix4d().SetIdentity());
+        _projectionMatrices.resize(numLayers, GfMatrix4d().SetIdentity());
         _FreeTextureArray();
         _numLayers = numLayers;
     }
@@ -100,41 +104,41 @@ GlfSimpleShadowArray::SetNumLayers(size_t numLayers)
 GfMatrix4d
 GlfSimpleShadowArray::GetViewMatrix(size_t index) const
 {
-    if (!TF_VERIFY(index < _viewMatrix.size())) {
+    if (!TF_VERIFY(index < _viewMatrices.size())) {
         return GfMatrix4d(1.0);
     }
 
-    return _viewMatrix[index];
+    return _viewMatrices[index];
 }
 
 void
 GlfSimpleShadowArray::SetViewMatrix(size_t index, GfMatrix4d const & matrix)
 {
-    if (!TF_VERIFY(index < _viewMatrix.size())) {
+    if (!TF_VERIFY(index < _viewMatrices.size())) {
         return;
     }
 
-    _viewMatrix[index] = matrix;
+    _viewMatrices[index] = matrix;
 }
 
 GfMatrix4d
 GlfSimpleShadowArray::GetProjectionMatrix(size_t index) const
 {
-    if (!TF_VERIFY(index < _projectionMatrix.size())) {
+    if (!TF_VERIFY(index < _projectionMatrices.size())) {
         return GfMatrix4d(1.0);
     }
 
-    return _projectionMatrix[index];
+    return _projectionMatrices[index];
 }
 
 void
 GlfSimpleShadowArray::SetProjectionMatrix(size_t index, GfMatrix4d const & matrix)
 {
-    if (!TF_VERIFY(index < _projectionMatrix.size())) {
+    if (!TF_VERIFY(index < _projectionMatrices.size())) {
         return;
     }
 
-    _projectionMatrix[index] = matrix;
+    _projectionMatrices[index] = matrix;
 }
 
 GfMatrix4d
@@ -145,22 +149,45 @@ GlfSimpleShadowArray::GetWorldToShadowMatrix(size_t index) const
     return GetViewMatrix(index) * GetProjectionMatrix(index) * size * center;
 }
 
-GLuint
-GlfSimpleShadowArray::GetShadowMapTexture() const
+void
+GlfSimpleShadowArray::InitResourceBindings(GlfBindingMapPtr const &bindingMap)
 {
-    return _texture;
+    bindingMap->GetSamplerUnit(_tokens->shadowSampler);
+    bindingMap->GetSamplerUnit(_tokens->shadowCompareSampler);
 }
 
-GLuint
-GlfSimpleShadowArray::GetShadowMapDepthSampler() const
+void
+GlfSimpleShadowArray::BindResources(GlfBindingMapPtr const &bindingMap)
 {
-    return _shadowDepthSampler;
+    const int shadowSampler = bindingMap->GetSamplerUnit(_tokens->shadowSampler);
+    const int shadowCompareSampler = bindingMap->GetSamplerUnit(_tokens->shadowCompareSampler);
+
+    glActiveTexture(GL_TEXTURE0 + shadowSampler);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, _texture);
+    glBindSampler(shadowSampler, _shadowDepthSampler);
+
+    glActiveTexture(GL_TEXTURE0 + shadowCompareSampler);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, _texture);
+    glBindSampler(shadowCompareSampler, _shadowCompareSampler);
+
+    glActiveTexture(GL_TEXTURE0);
 }
 
-GLuint
-GlfSimpleShadowArray::GetShadowMapCompareSampler() const
+void
+GlfSimpleShadowArray::UnbindResources(GlfBindingMapPtr const &bindingMap)
 {
-    return _shadowCompareSampler;
+    const int shadowSampler = bindingMap->GetSamplerUnit(_tokens->shadowSampler);
+    const int shadowCompareSampler = bindingMap->GetSamplerUnit(_tokens->shadowCompareSampler);
+
+    glActiveTexture(GL_TEXTURE0 + shadowSampler);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    glBindSampler(shadowSampler, 0);
+
+    glActiveTexture(GL_TEXTURE0 + shadowCompareSampler);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+    glBindSampler(shadowCompareSampler, 0);
+
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void

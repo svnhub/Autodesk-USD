@@ -82,7 +82,14 @@ HdxShadowTask::Sync(HdSceneDelegate* delegate,
     }
 
     GlfSimpleLightVector const glfLights = lightingContext->GetLights();
-    GlfSimpleShadowArrayRefPtr const shadows = lightingContext->GetShadows();
+
+    const auto shadowArray = dynamic_cast<GlfSimpleShadowArray const*>(
+        &*lightingContext->GetShadows()
+    );
+
+    if (!TF_VERIFY(shadowArray))
+        return;
+
     HdRenderIndex &renderIndex = delegate->GetRenderIndex();
 
     const bool dirtyParams = (*dirtyBits) & HdChangeTracker::DirtyParams;
@@ -185,18 +192,18 @@ HdxShadowTask::Sync(HdSceneDelegate* delegate,
 
     
     // This should always be true.
-    TF_VERIFY(_passes.size() == shadows->GetNumLayers());
+    TF_VERIFY(_passes.size() == shadowArray->GetNumLayers());
 
     // But if it is not then we still have to make sure we don't
     // buffer overrun here.
     const size_t shadowCount = 
-        std::min(shadows->GetNumLayers(), _passes.size());
+        std::min(shadowArray->GetNumLayers(), _passes.size());
     for(size_t passId = 0; passId < shadowCount; passId++) {
         // Move the camera to the correct position to take the shadow map
         _renderPassStates[passId]->SetCamera( 
-            shadows->GetViewMatrix(passId), 
-            shadows->GetProjectionMatrix(passId),
-            GfVec4d(0,0,shadows->GetSize()[0],shadows->GetSize()[1]));
+            shadowArray->GetViewMatrix(passId), 
+            shadowArray->GetProjectionMatrix(passId),
+            GfVec4d(0,0,shadowArray->GetSize()[0],shadowArray->GetSize()[1]));
 
         _renderPassStates[passId]->Sync(
             renderIndex.GetResourceRegistry());
@@ -239,7 +246,11 @@ HdxShadowTask::Execute(HdTaskContext* ctx)
     glEnable(GL_PROGRAM_POINT_SIZE);
 
     // Generate the actual shadow maps
-    GlfSimpleShadowArrayRefPtr const shadows = lightingContext->GetShadows();
+	const auto shadows = dynamic_cast<GlfSimpleShadowArray*>(
+		&*lightingContext->GetShadows()
+	);
+	TF_VERIFY(shadows);
+
     // This ensures we don't segfault if the shadows and passes are out of sync.
     // The TF_VERIFY is in Sync for making sure they match but we handle
     // failure gracefully here.

@@ -50,8 +50,6 @@ TF_DEFINE_PRIVATE_TOKENS(
     ((lightingUB, "Lighting"))
     ((shadowUB, "Shadow"))
     ((materialUB, "Material"))
-    ((shadowSampler, "shadowTexture"))
-    ((shadowCompareSampler, "shadowCompareTexture"))
 );
 
 // XXX:
@@ -69,7 +67,7 @@ GlfSimpleLightingContext::New()
 }
 
 GlfSimpleLightingContext::GlfSimpleLightingContext() :
-    _shadows(new GlfSimpleShadowArray(GfVec2i(1024, 1024), 0)),
+    _shadows( TfCreateRefPtr(new GlfSimpleShadowArray(GfVec2i(1024, 1024))) ),
     _worldToViewMatrix(1.0),
     _projectionMatrix(1.0),
     _sceneAmbient(0.01, 0.01, 0.01, 1.0),
@@ -117,13 +115,19 @@ GlfSimpleLightingContext::GetNumLightsUsed() const
 }
 
 void
-GlfSimpleLightingContext::SetShadows(GlfSimpleShadowArrayRefPtr const & shadows)
+GlfSimpleLightingContext::SetShadows(GlfShadowSourceRefPtr const & shadows)
 {
-    _shadows = shadows;
+	if (_shadows != shadows)
+	{
+		_shadows = shadows;
+		if (_bindingMap)
+			InitResourceBindings();
+	}
+    
     _shadowUniformBlockValid = false;
 }
 
-GlfSimpleShadowArrayRefPtr const &
+GlfShadowSourceRefPtr const &
 GlfSimpleLightingContext::GetShadows()
 {
     return _shadows;
@@ -208,21 +212,20 @@ GlfSimpleLightingContext::GetUseColorMaterialDiffuse() const
 }
 
 void
-GlfSimpleLightingContext::InitUniformBlockBindings(
-        GlfBindingMapPtr const &bindingMap) const
+GlfSimpleLightingContext::InitResourceBindings()
 {
-    // populate uniform bindings (XXX: need better API)
-    bindingMap->GetUniformBinding(_tokens->lightingUB);
-    bindingMap->GetUniformBinding(_tokens->shadowUB);
-    bindingMap->GetUniformBinding(_tokens->materialUB);
-}
+	_bindingMap = TfCreateRefPtr(new GlfBindingMap());
 
-void
-GlfSimpleLightingContext::InitSamplerUnitBindings(
-        GlfBindingMapPtr const &bindingMap) const
-{
-    bindingMap->GetSamplerUnit(_tokens->shadowSampler);
-    bindingMap->GetSamplerUnit(_tokens->shadowCompareSampler);
+	_bindingMap->GetUniformBinding(TfToken("GlobalUniform"));
+	_bindingMap->GetUniformBinding(TfToken("DrawDataBuffer"));
+
+	// TODO: robust binding from codegen
+	_bindingMap->GetUniformBinding(_tokens->shadowUB);
+	_bindingMap->GetUniformBinding(_tokens->lightingUB);
+	_bindingMap->GetUniformBinding(_tokens->materialUB);
+
+	if (_shadows)
+		_shadows->InitResourceBindings(_bindingMap);
 }
 
 inline void
@@ -251,9 +254,36 @@ setMatrix(float *dst, GfMatrix4d const & mat)
 }
 
 void
-GlfSimpleLightingContext::BindUniformBlocks(GlfBindingMapPtr const &bindingMap)
+GlfSimpleLightingContext::BindResouces(GLuint program)
+{
+	// XXX: we'd like to use HdSt_ResourceBinder instead of GlfBindingMap.
+	//
+	if (!_bindingMap)
+		return;
+
+	_bindingMap->AssignUniformBindingsToProgram(program);
+	_bindingMap->AssignSamplerUnitsToProgram(program);
+
+	_BindUniformBlocks();
+
+	if (_shadows)
+		_shadows->BindResources(_bindingMap);
+}
+
+void
+GlfSimpleLightingContext::UnbindResources()
+{
+	if (_bindingMap && _shadows)
+		_shadows->UnbindResources(_bindingMap);
+}
+
+void
+GlfSimpleLightingContext::_BindUniformBlocks()
 {
     GLF_GROUP_FUNCTION();
+
+	if (!_bindingMap)
+		return;
     
     if (!_lightingUniformBlock)
         _lightingUniformBlock = GlfUniformBlock::New("_lightingUniformBlock");
@@ -372,10 +402,10 @@ GlfSimpleLightingContext::BindUniformBlocks(GlfBindingMapPtr const &bindingMap)
         }
     }
 
-    _lightingUniformBlock->Bind(bindingMap, _tokens->lightingUB);
+    _lightingUniformBlock->Bind(_bindingMap, _tokens->lightingUB);
 
     if (shadowExists) {
-        _shadowUniformBlock->Bind(bindingMap, _tokens->shadowUB);
+        _shadowUniformBlock->Bind(_bindingMap, _tokens->shadowUB);
     }
 
     if (!_materialUniformBlockValid) {
@@ -403,41 +433,7 @@ GlfSimpleLightingContext::BindUniformBlocks(GlfBindingMapPtr const &bindingMap)
         _materialUniformBlockValid = true;
     }
 
-    _materialUniformBlock->Bind(bindingMap, _tokens->materialUB);
-}
-
-void
-GlfSimpleLightingContext::BindSamplers(GlfBindingMapPtr const &bindingMap)
-{
-    int shadowSampler = bindingMap->GetSamplerUnit(_tokens->shadowSampler);
-    int shadowCompareSampler = bindingMap->GetSamplerUnit(_tokens->shadowCompareSampler);
-
-    glActiveTexture(GL_TEXTURE0 + shadowSampler);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, _shadows->GetShadowMapTexture());
-    glBindSampler(shadowSampler, _shadows->GetShadowMapDepthSampler());
-
-    glActiveTexture(GL_TEXTURE0 + shadowCompareSampler);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, _shadows->GetShadowMapTexture());
-    glBindSampler(shadowCompareSampler, _shadows->GetShadowMapCompareSampler());
-
-    glActiveTexture(GL_TEXTURE0);
-}
-
-void
-GlfSimpleLightingContext::UnbindSamplers(GlfBindingMapPtr const &bindingMap)
-{
-    int shadowSampler = bindingMap->GetSamplerUnit(_tokens->shadowSampler);
-    int shadowCompareSampler = bindingMap->GetSamplerUnit(_tokens->shadowCompareSampler);
-
-    glActiveTexture(GL_TEXTURE0 + shadowSampler);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-    glBindSampler(shadowSampler, 0);
-
-    glActiveTexture(GL_TEXTURE0 + shadowCompareSampler);
-    glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
-    glBindSampler(shadowCompareSampler, 0);
-
-    glActiveTexture(GL_TEXTURE0);
+    _materialUniformBlock->Bind(_bindingMap, _tokens->materialUB);
 }
 
 void

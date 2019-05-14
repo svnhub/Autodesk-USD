@@ -27,6 +27,7 @@
 #include "px_vp20/utils.h"
 
 #include "px_vp20/glslProgram.h"
+#include "px_vp20/shadowSource.h"
 
 #include "pxr/base/gf/math.h"
 #include "pxr/base/gf/matrix4d.h"
@@ -423,7 +424,10 @@ _GetLightingParam(
 /* static */
 GlfSimpleLightingContextRefPtr
 px_vp20Utils::GetLightingContextFromDrawContext(
-        const MHWRender::MDrawContext& context)
+    const MHWRender::MDrawContext& context,
+    Vp2Pass vp2Pass,
+    ShadowMapTechnique shadowMapTechnique
+)
 {
     const GfVec4f blackColor(0.0f, 0.0f, 0.0f, 1.0f);
     const GfVec4f whiteColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -437,7 +441,11 @@ px_vp20Utils::GetLightingContextFromDrawContext(
         context.numberOfActiveLights(
             MHWRender::MDrawContext::kFilteredToLightLimit,
             &status);
-    if (status != MS::kSuccess || numMayaLights < 1u) {
+
+    if (status != MS::kSuccess
+        || numMayaLights < 1u
+        || vp2Pass != Vp2Pass::kColor
+    ) {
         return lightingContext;
     }
 
@@ -461,9 +469,13 @@ px_vp20Utils::GetLightingContextFromDrawContext(
 
     GlfSimpleLightVector lights;
 
-    for (unsigned int i = 0u; i < numMayaLights; ++i) {
+    UsdMayaShadowSourceRefPtr vp2ShadowSource;
+    if (shadowMapTechnique == px_vp20Utils::ShadowMapTechnique::kVp2Task)
+        vp2ShadowSource = TfCreateRefPtr(new UsdMayaShadowSource());
+
+    for (unsigned int iMayaLight = 0u; iMayaLight < numMayaLights; ++iMayaLight) {
         MHWRender::MLightParameterInformation* mayaLightParamInfo =
-            context.getLightParameterInformation(i);
+            context.getLightParameterInformation(iMayaLight);
         if (!mayaLightParamInfo) {
             continue;
         }
@@ -496,6 +508,10 @@ px_vp20Utils::GetLightingContextFromDrawContext(
         int        lightShadowResolution = 512;
         float      lightShadowBias = 0.0f;
         bool       lightShadowOn = false;
+
+        constexpr auto INVALID_GLUINT = std::numeric_limits<GLuint>::max();
+        auto shadowMapTexture = INVALID_GLUINT;
+        MHWRender::MSamplerStateDesc shadowMapSamplerDesc;
 
         bool globalShadowOn = false;
 
@@ -537,6 +553,10 @@ px_vp20Utils::GetLightingContextFromDrawContext(
                     mayaLightParamInfo->getParameter(paramName, matrixValue);
                     // Gf matrices are row-major.
                     matrixValue = matrixValue.transpose();
+                    break;
+                case MHWRender::MLightParameterInformation::kTexture2:
+                case MHWRender::MLightParameterInformation::kTextureCube:
+                case MHWRender::MLightParameterInformation::kSampler:
                     break;
                 default:
                     // Unsupported paramType.
@@ -604,6 +624,31 @@ px_vp20Utils::GetLightingContextFromDrawContext(
                     break;
                 case MHWRender::MLightParameterInformation::kShadowOn:
                     _GetLightingParam(intValues, floatValues, lightShadowOn);
+                    break;
+                case MHWRender::MLightParameterInformation::kShadowMap:                    
+                    switch (paramType)
+                    {
+                    case MHWRender::MLightParameterInformation::kTexture2:
+                    {
+                        const void* const pGluint =
+                            mayaLightParamInfo->getParameterTextureHandle(paramName);
+
+                        if (TF_VERIFY(pGluint))
+                            shadowMapTexture = *static_cast<const GLuint*>(pGluint);
+                    }
+                    case MHWRender::MLightParameterInformation::kTextureCube:
+                        // TODO: implement point light shadow map sampling
+                        // NB: HdSt doesn't support point light shadows, but UsdMayaGL can
+                        break;
+
+                    default:
+                        TF_VERIFY(false, "Unexpected shadow map parameter type");
+                        break;
+                    }
+                    break;
+                case MHWRender::MLightParameterInformation::kShadowSamp:
+                    if (TF_VERIFY(paramType == MHWRender::MLightParameterInformation::kSampler))
+                        mayaLightParamInfo->getParameter(paramName, shadowMapSamplerDesc);
                     break;
                 default:
                     // Unsupported paramSemantic.
@@ -709,12 +754,32 @@ px_vp20Utils::GetLightingContextFromDrawContext(
         light.SetShadowMatrix(lightShadowMatrix);
         light.SetShadowResolution(lightShadowResolution);
         light.SetShadowBias(lightShadowBias);
-        light.SetHasShadow(lightShadowOn && globalShadowOn);
+
+        if (lightShadowOn && globalShadowOn) {
+            if (vp2ShadowSource) {
+                if (shadowMapTexture != INVALID_GLUINT) {
+                    const size_t shadowIndex = vp2ShadowSource->AddShadowMap(
+                        shadowMapTexture, shadowMapSamplerDesc
+                    );
+                    light.SetShadowIndex(static_cast<int>(shadowIndex));
+                    light.SetHasShadow(true);
+                }
+                else
+                    light.SetHasShadow(false);
+            }
+            else
+                light.SetHasShadow(true);
+        }
+        else
+            light.SetHasShadow(false);
 
         lights.push_back(light);
     }
 
     lightingContext->SetLights(lights);
+
+    if (vp2ShadowSource)
+        lightingContext->SetShadows(vp2ShadowSource);
 
     // XXX: These material settings match what we used to get when we read the
     // material from OpenGL. This should probably eventually be something more

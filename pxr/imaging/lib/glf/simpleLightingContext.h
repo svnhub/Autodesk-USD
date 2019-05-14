@@ -45,7 +45,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 TF_DECLARE_WEAK_AND_REF_PTRS(GlfBindingMap);
 TF_DECLARE_WEAK_AND_REF_PTRS(GlfUniformBlock);
 TF_DECLARE_WEAK_AND_REF_PTRS(GlfSimpleLightingContext);
-TF_DECLARE_WEAK_AND_REF_PTRS(GlfSimpleShadowArray);
+TF_DECLARE_WEAK_AND_REF_PTRS(GlfShadowSource);
 
 class GlfSimpleLightingContext : public TfRefBase, public TfWeakBase {
 public:
@@ -65,9 +65,9 @@ public:
     int GetNumLightsUsed() const;
 
     GLF_API
-    void SetShadows(GlfSimpleShadowArrayRefPtr const & shadows);
+    void SetShadows(GlfShadowSourceRefPtr const & shadows);
     GLF_API
-    GlfSimpleShadowArrayRefPtr const & GetShadows();
+    GlfShadowSourceRefPtr const & GetShadows();
 
     GLF_API
     void SetMaterial(GlfSimpleMaterial const & material);
@@ -97,18 +97,13 @@ public:
     GLF_API
     bool GetUseColorMaterialDiffuse() const;
 
-    GLF_API
-    void InitUniformBlockBindings(GlfBindingMapPtr const &bindingMap) const;
-    GLF_API
-    void InitSamplerUnitBindings(GlfBindingMapPtr const &bindingMap) const;
+	GLF_API
+	void InitResourceBindings();
 
-    GLF_API
-    void BindUniformBlocks(GlfBindingMapPtr const &bindingMap);
-    GLF_API
-    void BindSamplers(GlfBindingMapPtr const &bindingMap);
-
-    GLF_API
-    void UnbindSamplers(GlfBindingMapPtr const &bindingMap);
+	GLF_API
+	void BindResouces(GLuint program);
+	GLF_API
+	void UnbindResources();
 
     GLF_API
     void SetStateFromOpenGL();
@@ -120,8 +115,12 @@ protected:
     ~GlfSimpleLightingContext();
 
 private:
+	void _BindUniformBlocks();
+
+	GlfBindingMapRefPtr _bindingMap;
+
     GlfSimpleLightVector _lights;
-    GlfSimpleShadowArrayRefPtr _shadows;
+    GlfShadowSourceRefPtr _shadows;
 
     GfMatrix4d _worldToViewMatrix;
     GfMatrix4d _projectionMatrix;

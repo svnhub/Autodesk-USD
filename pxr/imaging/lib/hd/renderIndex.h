@@ -268,8 +268,10 @@ public:
     // ---------------------------------------------------------------------- //
 
     /// Inserts a new task into the render index with an identifier of \p id.
-    template <typename T>
-    void InsertTask(HdSceneDelegate* delegate, SdfPath const& id);
+    template <typename T, typename... ARGS>
+    void InsertTask(HdSceneDelegate* delegate,
+                    SdfPath const& id,
+                    ARGS&&... args);
 
     /// Removes the given task from the RenderIndex.
     HD_API
@@ -473,14 +475,16 @@ private:
     HdRenderIndex() = delete;
 };
 
-template <typename T>
+template <typename T, typename... ARGS>
 void
-HdRenderIndex::InsertTask(HdSceneDelegate* delegate, SdfPath const& id)
+HdRenderIndex::InsertTask(
+    HdSceneDelegate* delegate, SdfPath const& id, ARGS&&... args
+)
 {
     HD_TRACE_FUNCTION();
     HF_MALLOC_TAG_FUNCTION();
 
-    HdTaskSharedPtr task = boost::make_shared<T>(delegate, id);
+    HdTaskSharedPtr task = boost::make_shared<T>(delegate, id, args...);
     _TrackDelegateTask(delegate, id, task);
 }
 

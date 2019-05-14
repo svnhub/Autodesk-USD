@@ -30,6 +30,9 @@ pxr_shared_library(${PXR_PACKAGE}
         glslProgram
         utils
         utils_legacy
+        
+    PRIVATE_CLASSES
+    	shadowSource
 
     DISABLE_PRECOMPILED_HEADERS
 )
