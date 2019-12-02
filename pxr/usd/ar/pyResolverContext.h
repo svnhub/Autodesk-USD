@@ -28,7 +28,7 @@
 /// Macros for creating Python bindings for objects used with 
 /// ArResolverContext.
 
-#include <Python.h>
+#include <boost/python/detail/wrap_python.hpp>
 #include <boost/python/extract.hpp>
 #include <boost/python/object.hpp>
 

@@ -41,7 +41,7 @@
 #include <atomic>
 #include <mutex>
 #include <string>
-#include <Python.h>
+#include <boost/python/detail/wrap_python.hpp>
 #include <signal.h>
 
 using std::string;

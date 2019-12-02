@@ -251,6 +251,6 @@
 #include <tbb/spin_mutex.h>
 #include <tbb/spin_rw_mutex.h>
 #ifdef PXR_PYTHON_SUPPORT_ENABLED
-#include <Python.h>
+#include <boost/python/detail/wrap_python.hpp>
 #include <frameobject.h>
 #endif // PXR_PYTHON_SUPPORT_ENABLED

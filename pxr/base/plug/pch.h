@@ -192,5 +192,5 @@
 #include <tbb/task_arena.h>
 #include <tbb/task_group.h>
 #ifdef PXR_PYTHON_SUPPORT_ENABLED
-#include <Python.h>
+#include <boost/python/detail/wrap_python.hpp>
 #endif // PXR_PYTHON_SUPPORT_ENABLED

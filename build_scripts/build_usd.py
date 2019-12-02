@@ -292,26 +292,26 @@ def RunCMake(context, force, extraArgs = None):
     # (Ninja, make), and --config for multi-configuration generators 
     # (Visual Studio); technically we don't need BOTH at the same
     # time, but specifying both is simpler than branching
-    config=("Debug" if context.buildDebug else "Release")
+    variant= BuildVariant(context)
 
     with CurrentWorkingDirectory(buildDir):
         Run('cmake '
             '-DCMAKE_INSTALL_PREFIX="{instDir}" '
             '-DCMAKE_PREFIX_PATH="{depsInstDir}" '
-            '-DCMAKE_BUILD_TYPE={config} '
+            '-DCMAKE_BUILD_TYPE={variant} '
             '{osx_rpath} '
             '{generator} '
             '{extraArgs} '
             '"{srcDir}"'
             .format(instDir=instDir,
                     depsInstDir=context.instDir,
-                    config=config,
+                    variant=variant,
                     srcDir=srcDir,
                     osx_rpath=(osx_rpath or ""),
                     generator=(generator or ""),
                     extraArgs=(" ".join(extraArgs) if extraArgs else "")))
-        Run("cmake --build . --config {config} --target install -- {multiproc}"
-            .format(config=config,
+        Run("cmake --build . --config {variant} --target install -- {multiproc}"
+            .format(variant=variant,
                     multiproc=FormatMultiProcs(context.numJobs, generator)))
 
 def PatchFile(filename, patches, multiLineMatches=False):
@@ -471,6 +471,15 @@ def DownloadURL(url, context, force, dontExtract = None):
             raise RuntimeError("Failed to extract archive {filename}: {err}"
                                .format(filename=filename, err=e))
 
+def BuildVariant(context): 
+    if context.buildDebug:
+        return "Debug"
+    elif context.buildRelease:
+        return "Release"
+    elif context.buildRelWithDebug:
+        return "RelWithDebInfo"
+
+    return "RelWithDebInfo"
 ############################################################
 # 3rd-Party Dependencies
 
@@ -561,6 +570,15 @@ def InstallBoost(context, force, buildArgs):
         # b2 supports at most -j64 and will error if given a higher value.
         num_procs = min(64, context.numJobs)
 
+        # boost only accepts three variants: debug, release, profile
+        boostBuildVariant = "profile"
+        if context.buildDebug:
+            boostBuildVariant= "debug"
+        elif context.buildRelease:
+            boostBuildVariant= "release"
+        elif context.buildRelWithDebug:
+            boostBuildVariant= "profile"
+
         b2_settings = [
             '--prefix="{instDir}"'.format(instDir=context.instDir),
             '--build-dir="{buildDir}"'.format(buildDir=context.buildDir),
@@ -569,8 +587,7 @@ def InstallBoost(context, force, buildArgs):
             'link=shared',
             'runtime-link=shared',
             'threading=multi', 
-            'variant={variant}'
-                .format(variant="debug" if context.buildDebug else "release"),
+            'variant={variant}'.format(variant=boostBuildVariant),
             '--with-atomic',
             '--with-program_options',
             '--with-regex'
@@ -1101,6 +1118,17 @@ def InstallUSD(context, force, buildArgs):
                                  .format(pyLibPath=pythonInfo[1]))
                 extraArgs.append('-DPYTHON_INCLUDE_DIR="{pyIncPath}"'
                                  .format(pyIncPath=pythonInfo[2]))
+
+            # Many people on Windows may not have python with the 
+            # debugging symbol ( python27_d.lib ) installed, this is the common case 
+            # where one downloads the python from official download website. Therefore we 
+            # can still let people decide to build USD with release version of python if 
+            # debugging into python land is not what they want which can be done by setting the 
+            # --debug-python flag
+            if context.buildDebug and context.debugPython:
+                extraArgs.append('-DPXR_DEFINE_BOOST_DEBUG_PYTHON_FLAG=ON')
+            else:
+                extraArgs.append('-DPXR_DEFINE_BOOST_DEBUG_PYTHON_FLAG=OFF')
         else:
             extraArgs.append('-DPXR_ENABLE_PYTHON_SUPPORT=OFF')
 
@@ -1333,7 +1361,13 @@ subgroup.add_argument("--build-monolithic", dest="build_type",
                       help="Build a single monolithic shared library")
 
 group.add_argument("--debug", dest="build_debug", action="store_true",
-                    help="Build with debugging information")
+                    help="Build in Debug mode")
+
+group.add_argument("--release", dest="build_release", action="store_true",
+                    help="Build in Release mode")
+
+group.add_argument("--relwithdebug", dest="build_relwithdebug", action="store_true",
+                    help="Build in RelWithDebInfo mode")
 
 subgroup = group.add_mutually_exclusive_group()
 subgroup.add_argument("--tests", dest="build_tests", action="store_true",
@@ -1351,6 +1385,8 @@ subgroup.add_argument("--python", dest="build_python", action="store_true",
                                          "(default)")
 subgroup.add_argument("--no-python", dest="build_python", action="store_false",
                       help="Do not build python based components")
+subgroup.add_argument("--debug-python", dest="debug_python", action="store_true",
+                      help="Define Boost Python Debug if your Python library comes with Debugging symbols.")
 
 (NO_IMAGING, IMAGING, USD_IMAGING) = (0, 1, 2)
 
@@ -1522,6 +1558,11 @@ class InstallContext:
 
         # Build type
         self.buildDebug = args.build_debug;
+        self.buildRelease = args.build_release;
+        self.buildRelWithDebug = args.build_relwithdebug;
+
+        self.debugPython = args.debug_python
+
         self.buildShared = (args.build_type == SHARED_LIBS)
         self.buildMonolithic = (args.build_type == MONOLITHIC_LIB)
 
@@ -1786,7 +1827,7 @@ Building with settings:
   Downloader                    {downloader}
 
   Building                      {buildType}
-    Config                      {buildConfig}
+    Variant                     {buildVariant}
     Imaging                     {buildImaging}
       Ptex support:             {enablePtex}
       OpenImageIO support:      {buildOIIO} 
@@ -1795,6 +1836,7 @@ Building with settings:
     UsdImaging                  {buildUsdImaging}
       usdview:                  {buildUsdview}
     Python support              {buildPython}
+      Debug:                    {debugPython}
     Documentation               {buildDocs}
     Tests                       {buildTests}
     Alembic Plugin              {buildAlembic}
@@ -1835,7 +1877,7 @@ summaryMsg = summaryMsg.format(
     buildType=("Shared libraries" if context.buildShared
                else "Monolithic shared library" if context.buildMonolithic
                else ""),
-    buildConfig=("Debug" if context.buildDebug else "Release"),
+    buildVariant=BuildVariant(context),
     buildImaging=("On" if context.buildImaging else "Off"),
     enablePtex=("On" if context.enablePtex else "Off"),
     buildOIIO=("On" if context.buildOIIO else "Off"),
@@ -1844,6 +1886,7 @@ summaryMsg = summaryMsg.format(
     buildUsdImaging=("On" if context.buildUsdImaging else "Off"),
     buildUsdview=("On" if context.buildUsdview else "Off"),
     buildPython=("On" if context.buildPython else "Off"),
+    debugPython=("On" if context.debugPython else "Off"),
     buildDocs=("On" if context.buildDocs else "Off"),
     buildTests=("On" if context.buildTests else "Off"),
     buildAlembic=("On" if context.buildAlembic else "Off"),
