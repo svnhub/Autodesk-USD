@@ -67,20 +67,20 @@ find_path(MATERIALX_INCLUDE_DIRS
 )
 
 if (WIN32)
-    set(MATERIALX_CORE_STATIC_LIB_NAME MaterialXCore.lib)
-    set(MATERIALX_CORE_DYNAMIC_LIB_NAME MaterialXCore.dll)
+    set(MATERIALX_CORE_STATIC_LIB_NAME MaterialXCore.lib MaterialXCored.lib)
+    set(MATERIALX_CORE_DYNAMIC_LIB_NAME MaterialXCore.dll MaterialXCored.dll)
 else()
-    set(MATERIALX_CORE_STATIC_LIB_NAME libMaterialXCore.a)
+    set(MATERIALX_CORE_STATIC_LIB_NAME libMaterialXCore.a libMaterialXCored.a)
     if (APPLE)
-        set(MATERIALX_CORE_DYNAMIC_LIB_NAME libMaterialXCore.dylib)
+        set(MATERIALX_CORE_DYNAMIC_LIB_NAME libMaterialXCore.dylib libMaterialXCored.dylib)
     else()
-        set(MATERIALX_CORE_DYNAMIC_LIB_NAME libMaterialXCore.so)
+        set(MATERIALX_CORE_DYNAMIC_LIB_NAME libMaterialXCore.so libMaterialXCored.so)
     endif()
 endif()
 
 find_path(MATERIALX_LIB_DIRS 
-    "${MATERIALX_CORE_STATIC_LIB_NAME}"
-    "${MATERIALX_CORE_DYNAMIC_LIB_NAME}"
+    ${MATERIALX_CORE_STATIC_LIB_NAME}
+    ${MATERIALX_CORE_DYNAMIC_LIB_NAME}
     HINTS
         "${MATERIALX_ROOT}"
         "$ENV{MATERIALX_ROOT}"        
@@ -116,7 +116,7 @@ foreach(MATERIALX_LIB
     RenderOsl
     )
     find_library(MATERIALX_${MATERIALX_LIB}_LIBRARY
-            MaterialX${MATERIALX_LIB}
+            MaterialX${MATERIALX_LIB} MaterialX${MATERIALX_LIB}d
         HINTS
             "${MATERIALX_LIB_DIRS}"
         DOC
