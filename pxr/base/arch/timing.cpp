@@ -34,7 +34,7 @@
 #include <numeric>
 #include <type_traits>
 
-#if defined(ARCH_OS_LINUX)
+#if defined(ARCH_OS_LINUX) || defined(__EMSCRIPTEN__)
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -62,6 +62,14 @@ Arch_ComputeNanosecondsPerTick()
     mach_timebase_info_data_t info;
     mach_timebase_info(&info);
     Arch_NanosecondsPerTick = static_cast<double>(info.numer) / info.denom;
+}
+
+#elif defined(__EMSCRIPTEN__)
+
+ARCH_HIDDEN
+void
+Arch_InitTickTimer()
+{
 }
 
 #elif defined(ARCH_OS_LINUX)

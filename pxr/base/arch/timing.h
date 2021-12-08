@@ -38,6 +38,8 @@
 
 #if defined(ARCH_OS_LINUX) && defined(ARCH_CPU_INTEL)
 #include <x86intrin.h>
+#elif defined(__EMSCRIPTEN__)
+#include <emscripten.h>
 #elif defined(ARCH_OS_DARWIN)
 #include <mach/mach_time.h>
 #elif defined(ARCH_OS_WINDOWS)
@@ -78,6 +80,8 @@ ArchGetTickTime()
     uint64_t result;
     __asm __volatile("mrs	%0, CNTVCT_EL0" : "=&r" (result));
     return result;
+#elif defined(__EMSCRIPTEN__)
+    return static_cast<int64_t>(emscripten_get_now() * 1e+6);
 #else
 #error Unknown architecture.
 #endif
