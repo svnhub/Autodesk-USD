@@ -1,0 +1,16 @@
+<html>
+  <head>
+    <base href="bindings/RelWithDebInfo/">
+  </head>
+  <body>
+    <script src="jsBindings.js"></script>
+    <script type="module">
+      import {UsdStage} from './usd.mjs';
+
+      let stage = UsdStage.CreateNew('HelloWorld.usda');
+      stage.DefinePrim('/hello', 'Xform');
+      stage.DefinePrim('/hello/world', 'Sphere');
+      console.log(stage.ExportToString());
+    </script>
+  </body>
+</html>
