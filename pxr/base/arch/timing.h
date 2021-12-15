@@ -96,7 +96,7 @@ inline uint64_t
 ArchGetStartTickTime()
 {
     uint64_t t;
-#if defined (ARCH_OS_DARWIN)
+#if defined (ARCH_OS_DARWIN) || defined(__EMSCRIPTEN__)
     return ArchGetTickTime();
 #elif defined (ARCH_CPU_ARM)
     std::atomic_signal_fence(std::memory_order_seq_cst);
@@ -137,7 +137,7 @@ inline uint64_t
 ArchGetStopTickTime()
 {
     uint64_t t;
-#if defined (ARCH_OS_DARWIN)
+#if defined (ARCH_OS_DARWIN) || defined(__EMSCRIPTEN__)
     return ArchGetTickTime();
 #elif defined (ARCH_CPU_ARM)
     std::atomic_signal_fence(std::memory_order_seq_cst);

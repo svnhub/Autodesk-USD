@@ -42,6 +42,12 @@ or in watch mode
 npm run test --  --watch
 ```
 
+After installation you have a *bin* subfolder under your *build* folder. This contains 
+a *test.html* file you can open in a browser. USD-for-Web uses the SharedArrayBuffer
+feature - this requires certain security headers (CORS). 
+If you don't want to worry about this for testing purposes you can run the Chrome browser
+with --enable-features=SharedArrayBuffer as a command line argument.
+
 NPM package consumption
 ------------------------
 

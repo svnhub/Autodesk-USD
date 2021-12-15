@@ -40,10 +40,27 @@ set(BUILD_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.js
     ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.wasm
     ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.worker.js
+    ${CMAKE_SOURCE_DIR}/js/test.html
 )
 
 install(
     FILES
       ${BUILD_FILES}
-    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../../../js/bindings/${CMAKE_BUILD_TYPE}
+    DESTINATION ${CMAKE_BINARY_DIR}/../../bin
+)
+
+install(
+    CODE
+    "execute_process(
+        COMMAND
+        ${CMAKE_COMMAND}
+        -DSOURCE_DIR=${CMAKE_SOURCE_DIR}
+        -P
+        ${CMAKE_CURRENT_LIST_DIR}/create_es6_module.cmake
+    )"
+)
+
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/usd.js 
+    DESTINATION ${CMAKE_BINARY_DIR}/../../bin
 )
