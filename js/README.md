@@ -42,6 +42,12 @@ or in watch mode
 npm run test --  --watch
 ```
 
+After installation you have a *bin* subfolder under your *build* folder. This contains 
+a *test.html* file you can open in a browser. USD-for-Web uses the SharedArrayBuffer
+feature - this requires certain security headers (CORS). 
+If you don't want to worry about this for testing purposes you can run the Chrome browser
+with --enable-features=SharedArrayBuffer as a command line argument.
+
 NPM package consumption
 ------------------------
 
@@ -67,7 +73,8 @@ and after adding `<script src="jsBindings.js"></script>` to your HTML page use i
 ```
     <script src="jsBindings.js"></script>
     <script type="module">
-      import {UsdStage} from './usd.js';
+      const Usd = await usdModule();
+      const UsdStage = Usd.UsdStage;
       let stage = UsdStage.CreateNew('HelloWorld.usda');
     </script>
 ```
@@ -75,8 +82,8 @@ and after adding `<script src="jsBindings.js"></script>` to your HTML page use i
 In Node.Js you can load it via 
 ```
 const usdModule = require("usd");
-let Usd = await usdModule();
-let UsdStage = Usd.UsdStage;
+const Usd = await usdModule();
+const UsdStage = Usd.UsdStage;
 
 let stage = UsdStage.CreateNew('HelloWorld.usda');
 ...

@@ -1,11 +1,10 @@
 <html>
-  <head>
-    <base href="bindings/RelWithDebInfo/">
-  </head>
   <body>
-    <script src="jsBindings.js"></script>
+    <script src='./jsBindings.js'></script>
+    
     <script type="module">
-      import {UsdStage} from './usd.mjs';
+      const Usd = await getUsdModule();
+      const UsdStage = Usd.UsdStage;
 
       let stage = UsdStage.CreateNew('HelloWorld.usda');
       stage.DefinePrim('/hello', 'Xform');
