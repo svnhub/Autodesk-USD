@@ -24,6 +24,8 @@
 #ifndef PXR_USD_SDF_WRAPPATH_H
 #define PXR_USD_SDF_WRAPPATH_H
 
+#ifdef __EMSCRIPTEN__
+
 #include "pxr/usd/sdf/path.h"
 
 #include "pxr/base/tf/emscriptenTypeRegistration.h"
@@ -34,5 +36,7 @@ EMSCRIPTEN_REGISTER_TYPE_CONVERSION(pxr::SdfPath)
 static pxr::SdfPath fromWireType(WireType value) {
     return pxr::SdfPath(BindingType<val>::fromWireType(value).as<std::string>());
 EMSCRIPTEN_REGISTER_TYPE_CONVERSION_END(pxr::SdfPath)
+
+#endif // __EMSCRIPTEN__
 
 #endif // PXR_USD_SDF_WRAPPATH_H

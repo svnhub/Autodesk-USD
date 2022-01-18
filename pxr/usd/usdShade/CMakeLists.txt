@@ -31,6 +31,11 @@ pxr_library(usdShade
         api.h
         types.h
 
+    CPPFILES
+        wrapShaderJs.cpp
+        wrapInputJs.cpp
+        wrapOutputJs.cpp
+
     PYTHON_CPPFILES
         moduleDeps.cpp
 

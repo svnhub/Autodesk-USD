@@ -78,3 +78,13 @@ pxr_library(usdImaging
         plugInfo.json
 )
 
+pxr_build_test(testUsdImaging
+    LIBRARIES
+        hd
+        usd
+        usdUtils
+        usdImaging
+        sdf
+    CPPFILES
+        testenv/testUsdImaging.cpp
+)

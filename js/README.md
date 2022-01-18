@@ -73,7 +73,8 @@ and after adding `<script src="jsBindings.js"></script>` to your HTML page use i
 ```
     <script src="jsBindings.js"></script>
     <script type="module">
-      import {UsdStage} from './usd.js';
+      const Usd = await usdModule();
+      const UsdStage = Usd.UsdStage;
       let stage = UsdStage.CreateNew('HelloWorld.usda');
     </script>
 ```
@@ -81,8 +82,8 @@ and after adding `<script src="jsBindings.js"></script>` to your HTML page use i
 In Node.Js you can load it via 
 ```
 const usdModule = require("usd");
-let Usd = await usdModule();
-let UsdStage = Usd.UsdStage;
+const Usd = await usdModule();
+const UsdStage = Usd.UsdStage;
 
 let stage = UsdStage.CreateNew('HelloWorld.usda');
 ...

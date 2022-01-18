@@ -56,8 +56,16 @@ pxr_library(usdGeom
         xformOp
         xformCommonAPI
         
+    CPPFILES
+        wrapXformJs
+        wrapXformOpJs
+        wrapXformableJs
+
     PUBLIC_HEADERS
         api.h
+
+    CPPFILES
+        wrapMeshJs.cpp
 
     PYTHON_CPPFILES
         moduleDeps.cpp

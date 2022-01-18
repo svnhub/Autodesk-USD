@@ -36,6 +36,7 @@
 #include "pxr/base/gf/api.h"
 #include "pxr/base/gf/limits.h"
 #include "pxr/base/gf/traits.h"
+#include "pxr/base/gf/emscriptenRegistrationHelper.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -299,5 +300,6 @@ GfDot(GfVec4i const &v1, GfVec4i const &v2) {
 
  
 PXR_NAMESPACE_CLOSE_SCOPE
+REGISTER_GLVECTOR(pxr::GfVec4i)
 
 #endif // PXR_BASE_GF_VEC4I_H

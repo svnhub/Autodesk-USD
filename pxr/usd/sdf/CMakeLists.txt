@@ -94,6 +94,7 @@ pxr_library(sdf
     
     JS_PUBLIC_HEADERS
         wrapPathJs.h
+        wrapAssetPathJs.h
 
     PRIVATE_CLASSES
         assetPathResolver
@@ -119,6 +120,14 @@ pxr_library(sdf
         valueTypePrivate.h
 
     CPPFILES
+        wrapLayerJs.cpp
+        wrapSpecJs.cpp
+        wrapPrimSpecJs.cpp
+        wrapPropertySpecJs.cpp
+        wrapRelationshipSpecJs.cpp
+        wrapAttributeSpecJs.cpp
+        wrapTypesJs.cpp
+        wrapValueTypeNameJs.cpp
         # Flex/Bison generated code
         path.lex.cpp
         textFileFormat.lex.cpp
@@ -211,6 +220,7 @@ pxr_test_scripts(
     testenv/testSdfTypes.py
 )
 
+if (!PXR_ENABLE_JS_SUPPORT)
 pxr_build_test_shared_lib(TestSdfNoAssetFileFormat
     CREATE_FRAMEWORK
     INSTALL_PREFIX SdfPlugins
@@ -283,6 +293,7 @@ pxr_build_test(testSdfPathThreading
     CPPFILES
         testenv/testSdfPathThreading.cpp
 )
+endif()
 
 pxr_install_test_dir(
     SRC testenv/testSdfBatchNamespaceEdit.testenv
@@ -412,9 +423,11 @@ pxr_register_test(testSdfPathTable
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testSdfPathTable"
 )
 
+if (!PXR_ENABLE_JS_SUPPORT)
 pxr_register_test(testSdfPathThreading
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testSdfPathThreading"
 )
+endif()
 pxr_register_test(testSdfPayload
     PYTHON
     COMMAND "${CMAKE_INSTALL_PREFIX}/tests/testSdfPayload"

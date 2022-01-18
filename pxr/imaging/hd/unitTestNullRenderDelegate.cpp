@@ -77,6 +77,8 @@ public:
         // update perf counters or test scene delegate getter workflow.
         SdfPath const& id = GetId();
 
+        std::cout << "Syncing RPrimitive: " << id << std::endl;
+
         // PrimId dirty bit is internal to Hydra.
 
         if (HdChangeTracker::IsExtentDirty(*dirtyBits, id)) {
@@ -172,6 +174,8 @@ protected:
     virtual void _InitRepr(TfToken const &reprToken,
                            HdDirtyBits *dirtyBits) override
     {
+        std::cout << "Initializing RPrimitive: " << GetId() << std::endl;
+
         _ReprVector::iterator it = std::find_if(_reprs.begin(), _reprs.end(),
                                                 _ReprComparator(reprToken));
         if (it == _reprs.end()) {
@@ -222,6 +226,7 @@ public:
                       HdRenderParam   *renderParam,
                       HdDirtyBits     *dirtyBits) override
     {
+        std::cout << "Syncing Material: " << std::endl;
         *dirtyBits = HdMaterial::Clean;
     };
 
@@ -244,6 +249,7 @@ public:
                       HdRenderParam   *renderParam,
                       HdDirtyBits     *dirtyBits) override
     {
+        std::cout << "Syncing Coordinate System: " << std::endl;
         *dirtyBits = HdCoordSys::Clean;
     };
 
@@ -300,6 +306,7 @@ const TfTokenVector Hd_UnitTestNullRenderDelegate::SUPPORTED_BPRIM_TYPES =
 const TfTokenVector &
 Hd_UnitTestNullRenderDelegate::GetSupportedRprimTypes() const
 {
+    std::cout << "Asked for supported types" << std::endl;
     return SUPPORTED_RPRIM_TYPES;
 }
 
@@ -354,6 +361,7 @@ HdRprim *
 Hd_UnitTestNullRenderDelegate::CreateRprim(TfToken const& typeId,
                                     SdfPath const& rprimId)
 {
+    std::cout << "Creating RPrim " << rprimId << std::endl;
     return new Hd_NullRprim(typeId, rprimId);
 }
 

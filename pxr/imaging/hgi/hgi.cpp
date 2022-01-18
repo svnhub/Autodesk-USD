@@ -71,6 +71,8 @@ _MakeNewPlatformDefaultHgi()
             "HgiMetal";
         #elif defined(ARCH_OS_WINDOWS)
             "HgiGL";
+        #elif defined(__EMSCRIPTEN__)
+            "HgiGL";            
         #else
             ""; 
             #error Unknown Platform

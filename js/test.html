@@ -1,7 +1,6 @@
 <html>
   <body>
     <script src='./jsBindings.js'></script>
-    
     <script type="module">
       const Usd = await getUsdModule();
       const UsdStage = Usd.UsdStage;
@@ -10,6 +9,7 @@
       stage.DefinePrim('/hello', 'Xform');
       stage.DefinePrim('/hello/world', 'Sphere');
       console.log(stage.ExportToString());
+      stage.Download(usdFilename);
     </script>
   </body>
 </html>

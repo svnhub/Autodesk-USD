@@ -7,13 +7,14 @@ endif()
 
 set(BINDINGS_NAME "jsBindings")
 set(BINDING_DEPENDENCIES "")
-list(APPEND BINDING_DEPENDENCIES usd usdLux usdGeom usdUtils sdf tf)
+list(APPEND BINDING_DEPENDENCIES hd usd usdLux usdGeom usdUtils sdf tf usdShaders)
 
 set(RESOURCE_PARAMETERS "")
 function(add_resources target)
     # This local var is needed since list append cannot update the PARENT_SCOPE
     set(LOCAL_VAR ${RESOURCE_PARAMETERS})
     get_property(RESSOURCES TARGET ${target} PROPERTY EMSCRIPTEN_RESOURCES)
+
     list(APPEND LOCAL_VAR "${RESSOURCES}")
     set(RESOURCE_PARAMETERS "${LOCAL_VAR}" PARENT_SCOPE)
 endfunction()
@@ -21,7 +22,10 @@ endfunction()
 # Gather resources (schemas) to make them available to attach them to the bundle
 add_resources(usdShade)
 add_resources(sdf)
+add_resources(hd)
 add_resources(usdHydra)
+add_resources(usdShaders)
+add_resources(usdImaging)
 add_resources(usd)
 add_resources(usdLux)
 add_resources(ar)
@@ -30,8 +34,14 @@ add_resources(ndr)
 
 list(APPEND RESOURCE_PARAMETERS "--embed-file ${PROJECT_BINARY_DIR}/plugins_plugInfo.json@/usd/plugInfo.json")
 
+if(PXR_EMSCRIPTEN_NODE)
+  list(TRANSFORM RESOURCE_PARAMETERS REPLACE "-preload" "-embed")
+endif()
+message("RESOURCE LIST ${RESOURCE_PARAMETERS}")
+
 pxr_cpp_bin(${BINDINGS_NAME}
     LIBRARIES
+      #${BINDINGS_NAME}_LIB
       ${BINDING_DEPENDENCIES}
       ${RESOURCE_PARAMETERS}
 )
@@ -43,12 +53,24 @@ set(BUILD_FILES
     ${CMAKE_SOURCE_DIR}/js/test.html
 )
 
+if(!PXR_EMSCRIPTEN_NODE)
+    list(APPEND BUILD_FILES "${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.data")
+endif()
+
 install(
     FILES
       ${BUILD_FILES}
     DESTINATION ${CMAKE_BINARY_DIR}/../../bin
 )
+# Install files for npm package
 
+install(
+    FILES
+      ${BUILD_FILES}
+    DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../../../js/bindings/${CMAKE_BUILD_TYPE}
+)
+#[[
+# Create ES6 module - TBD
 install(
     CODE
     "execute_process(
@@ -64,3 +86,4 @@ install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/usd.js 
     DESTINATION ${CMAKE_BINARY_DIR}/../../bin
 )
+]]

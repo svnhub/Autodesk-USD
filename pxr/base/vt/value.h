@@ -33,6 +33,10 @@
 #endif // PXR_PYTHON_SUPPORT_ENABLED
 
 #if __EMSCRIPTEN__
+#include "pxr/usd/sdf/wrapPathJs.h"
+#include "pxr/base/tf/wrapTokenJs.h"
+#include "pxr/usd/sdf/wrapAssetPathJs.h"
+
 #include <emscripten/bind.h>
 #endif // __EMSCRIPTEN__
 

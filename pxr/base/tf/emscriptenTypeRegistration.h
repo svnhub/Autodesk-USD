@@ -26,7 +26,6 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/bind.h>
-
 // Use this define to make a type without bindings known to Emscripten
 #define EMSCRIPTEN_REGISTER_TYPE(TYPE) \
   namespace emscripten { \

@@ -77,6 +77,7 @@ pxr_library(gf
     PRIVATE_HEADERS
         ilmbase_eLut.h
         ilmbase_toFloat.h
+        emscriptenRegistrationHelper.h
 
     PYTHON_CPPFILES
         moduleDeps.cpp

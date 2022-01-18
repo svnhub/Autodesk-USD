@@ -22,6 +22,7 @@
 // language governing permissions and limitations under the Apache License.
 //
 #include "pxr/base/tf/token.h"
+#include "pxr/base/tf/wrapTokenJs.h"
 #include "pxr/usd/usd/attribute.h"
 #include "pxr/usd/usd/prim.h"
 #include "pxr/usd/usd/references.h"
@@ -37,5 +38,10 @@ GetPropertyNames(pxr::UsdPrim& self)
 
 EMSCRIPTEN_BINDINGS(UsdPrim) {
   class_<pxr::UsdPrim>("UsdPrim")
+    .function("GetAttribute", &pxr::UsdPrim::GetAttribute)
+    .function("GetTypeName", &pxr::UsdPrim::GetTypeName)
+    .function("GetAttributes", &pxr::UsdPrim::GetAttributes)
+    .function("GetPropertyNames", &GetPropertyNames)
+    .function("GetReferences", &pxr::UsdPrim::GetReferences)
     ;
 }

@@ -37,6 +37,7 @@
 #include "pxr/base/gf/limits.h"
 #include "pxr/base/gf/traits.h"
 #include "pxr/base/gf/math.h"
+#include "pxr/base/gf/emscriptenRegistrationHelper.h"
 
 #include <boost/functional/hash.hpp>
 
@@ -466,5 +467,6 @@ GfSlerp(double alpha, GfVec3f const &v0, GfVec3f const &v1);
  
  
 PXR_NAMESPACE_CLOSE_SCOPE
+REGISTER_GLVECTOR(pxr::GfVec3f)
 
 #endif // PXR_BASE_GF_VEC3F_H

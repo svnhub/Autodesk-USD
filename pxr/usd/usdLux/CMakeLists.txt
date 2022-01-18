@@ -11,6 +11,9 @@ pxr_library(usdLux
         usdGeom
         usdShade
 
+    CPPFILES
+        wrapDistantLightJs
+
     PUBLIC_CLASSES
         blackbody
         boundableLightBase

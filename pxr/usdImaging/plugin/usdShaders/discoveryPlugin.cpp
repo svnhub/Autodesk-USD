@@ -40,6 +40,7 @@
 #include "pxr/usd/usdShade/tokens.h"
 #include "pxr/usd/usdShade/shader.h"
 #include "pxr/usd/usdShade/shaderDefUtils.h"
+#include <iostream>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -53,6 +54,13 @@ TF_DEFINE_PRIVATE_TOKENS(
     ((infoNamespace, "info:"))
     ((baseSourceAsset, ":sourceAsset"))
 );
+
+class Test {
+    public:
+    Test() {}
+};
+
+Test testInstance;
 
 static std::string
 _GetShaderResourcePath(char const * resourceName="")

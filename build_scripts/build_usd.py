@@ -1400,6 +1400,15 @@ def InstallMaterialX(context, force, buildArgs):
 MATERIALX = Dependency("MaterialX", InstallMaterialX, "include/MaterialXCore/Library.h")
 
 ############################################################
+# Three.js
+THREE_URL = "https://unpkg.com/three@0.125.2/build/three.js"
+
+def InstallThreeJs(context, force, buildArgs):
+    DownloadURL(THREE_URL, context, force)
+
+THREE = Dependency("ThreeJs", InstallThreeJs, "src/three.js")
+
+############################################################
 # Embree
 # For MacOS we use version 3.7.0 to include a fix from Intel
 # to build on Catalina.
@@ -1610,8 +1619,15 @@ def InstallUSD(context, force, buildArgs):
             extraArgs.append('-DOPENSUBDIV_INCLUDE_DIR=' + os.path.join(context.usdInstDir, 'include'))
             extraArgs.append('-DOPENSUBDIV_OSDCPU_LIBRARY=' + os.path.join(context.usdInstDir, 'lib/libosdCPU.a'))
 
+            extraArgs.append('-DTHREE_JS_FILE=' + os.path.join(context.usdInstDir, 'src/three.js'))
+
             extraArgs.append('-DPXR_ENABLE_GL_SUPPORT=OFF')
             extraArgs.append('-DBUILD_SHARED_LIBS=OFF')
+
+            if context.emscripten == 'EMSCRIPTEN_NODE':
+                extraArgs.append('-DPXR_EMSCRIPTEN_NODE=1')
+            else:
+                extraArgs.append('-DPXR_EMSCRIPTEN_NODE=0')
 
         RunCMake(context, force, extraArgs)
 
@@ -1739,7 +1755,8 @@ group.add_argument("--toolset", type=str,
 subgroup = group.add_mutually_exclusive_group()
 subgroup.add_argument("--emscripten", dest="emscripten", action="store_const", const='EMSCRIPTEN',
                     help="Build for emscripten")
-
+subgroup.add_argument("--emscriptenNode", dest="emscripten", action="store_const", const='EMSCRIPTEN_NODE',
+                    help="Build emscripten for NodeJS (embed data into JS)")
 if Linux():
     group.add_argument("--use-cxx11-abi", type=int, choices=[0, 1],
                        help=("Use C++11 ABI for libstdc++. (see docs above)"))
@@ -2078,13 +2095,13 @@ if context.emscripten:
         context.buildPython = False
         disabled.append('Python')
 
-    if context.buildImaging:
-        context.buildImaging = NO_IMAGING
-        disabled.append('imaging')
+    # if context.buildImaging:
+    #     context.buildImaging = NO_IMAGING
+    #     disabled.append('imaging')
     
-    if context.buildUsdImaging:
-        context.buildUsdImaging = NO_IMAGING
-        disabled.append('usdImaging')
+    # if context.buildUsdImaging:
+    #     context.buildUsdImaging = NO_IMAGING
+    #     disabled.append('usdImaging')
 
     if context.buildExamples:
         context.buildExamples = False
@@ -2110,6 +2127,9 @@ if context.emscripten:
 requiredDependencies = [BOOST, TBB]
 if not context.emscripten:
     requiredDependencies += [ZLIB]
+
+if context.emscripten and context.buildTests:
+    requiredDependencies += [THREE]
 
 if context.buildAlembic:
     if context.enableHDF5:
@@ -2267,6 +2287,7 @@ Building with settings:
   CMake generator               {cmakeGenerator}
   CMake toolset                 {cmakeToolset}
   Emscripten                    {emscripten}
+  Node                          {emscriptenNode}
   Downloader                    {downloader}
 
   Building                      {buildType}
@@ -2327,6 +2348,7 @@ summaryMsg = summaryMsg.format(
     cmakeToolset=("Default" if not context.cmakeToolset
                   else context.cmakeToolset),
     emscripten=("Enabled" if context.emscripten else "Disabled"),
+    emscriptenNode=("Enabled" if context.emscripten == 'EMSCRIPTEN_NODE' else "Disabled"),
     downloader=(context.downloaderName),
     dependencies=("None" if not dependenciesToBuild else 
                   ", ".join([d.name for d in dependenciesToBuild])),

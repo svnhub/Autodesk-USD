@@ -135,6 +135,7 @@ pxr_build_test_shared_lib(TestPcpStreamingLayerReload
         testenv/TestPcpStreamingLayerReload.cpp
 )
 
+if(NOT PXR_ENABLE_JS_SUPPORT)
 pxr_build_test(testPcpHardToReach
     LIBRARIES
         tf 
@@ -174,6 +175,7 @@ pxr_build_test(testPcpPathTranslation_HardToReach
     CPPFILES
         testenv/testPcpPathTranslation_HardToReach.cpp
 )
+endif()
 
 pxr_install_test_dir(
     SRC testenv/testPcpOwner.testenv

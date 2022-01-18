@@ -31,6 +31,7 @@
 #include "pxr/base/gf/math.h"
 #include "pxr/base/gf/ostreamHelpers.h"
 #include "pxr/base/tf/type.h"
+#include "pxr/base/gf/emscriptenRegistrationHelper.h"
 
 // Include headers for other vec types to support wrapping conversions and
 // operators.

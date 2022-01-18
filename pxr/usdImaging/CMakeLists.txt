@@ -1,5 +1,6 @@
 set(DIRS
     usdImaging
+    hdEmscripten
     usdImagingGL
     usdRiImaging
     usdSkelImaging
