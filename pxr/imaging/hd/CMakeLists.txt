@@ -172,7 +172,7 @@ pxr_library(hd
         overview.dox
 )
 
-if (!EMSCRIPTEN)
+if (!PXR_ENABLE_JS_SUPPORT)
 
 pxr_build_test(testHdBufferSourceEmptyVal
    LIBRARIES

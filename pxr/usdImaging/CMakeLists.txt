@@ -1,6 +1,5 @@
 set(DIRS
     usdImaging
-    hdEmscripten
     usdImagingGL
     usdRiImaging
     usdSkelImaging
@@ -9,6 +8,7 @@ set(DIRS
     usdviewq
     bin
     plugin
+    hdEmscripten
 )
 
 foreach(d ${DIRS})

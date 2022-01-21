@@ -1,7 +1,7 @@
 set(PXR_PREFIX pxr/hdEmscripten)
 set(PXR_PACKAGE hdEmscripten)
 
-if (NOT EMSCRIPTEN)
+if (NOT PXR_ENABLE_JS_SUPPORT)
   return()
 endif()
 pxr_library(hdEmscripten

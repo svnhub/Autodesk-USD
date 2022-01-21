@@ -2,7 +2,7 @@ set(PXR_PREFIX pxr/base)
 set(PXR_PACKAGE vt)
 
 set(EMBIND "")
-if(EMSCRIPTEN)
+if(PXR_ENABLE_JS_SUPPORT)
     set(EMBIND "--bind")
 endif()
 

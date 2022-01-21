@@ -14,7 +14,7 @@ function(add_resources target)
     # This local var is needed since list append cannot update the PARENT_SCOPE
     set(LOCAL_VAR ${RESOURCE_PARAMETERS})
     get_property(RESSOURCES TARGET ${target} PROPERTY EMSCRIPTEN_RESOURCES)
-
+    message("RESOURCE FILES ${RESSOURCES}")
     list(APPEND LOCAL_VAR "${RESSOURCES}")
     set(RESOURCE_PARAMETERS "${LOCAL_VAR}" PARENT_SCOPE)
 endfunction()

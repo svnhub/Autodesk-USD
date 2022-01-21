@@ -2,5 +2,6 @@
 .DS_Store
 .AppleDouble
 USD_emscripten/
+build
 .vscode/
 
