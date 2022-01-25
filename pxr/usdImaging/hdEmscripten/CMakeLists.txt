@@ -4,6 +4,9 @@ set(PXR_PACKAGE hdEmscripten)
 if (NOT PXR_ENABLE_JS_SUPPORT)
   return()
 endif()
+
+set(BINDINGS_NAME "emHdBindings")
+
 pxr_library(hdEmscripten
     LIBRARIES
       hd
@@ -44,9 +47,24 @@ add_resources(ndr)
 
 list(APPEND RESOURCE_PARAMETERS "--preload-file ${PROJECT_BINARY_DIR}/plugins_plugInfo.json@/usd/plugInfo.json")
 
+if(PXR_EMSCRIPTEN_NODE)
+  list(TRANSFORM RESOURCE_PARAMETERS REPLACE "-preload" "-embed")
+endif()
 message("RESOURCE LIST ${RESOURCE_PARAMETERS}")
 
-pxr_cpp_bin(emHdBindings
+set(BUILD_FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.js
+    ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.wasm
+    ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.worker.js
+    ${CMAKE_CURRENT_SOURCE_DIR}/testenv/test.html
+    ${CMAKE_CURRENT_SOURCE_DIR}/js/ThreeJsRenderDelegate.js
+)
+
+if(NOT PXR_EMSCRIPTEN_NODE)
+    list(APPEND BUILD_FILES "${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.data")
+endif()
+
+pxr_cpp_bin(${BINDINGS_NAME}
   LIBRARIES
       hdEmscripten
       usdImaging
@@ -55,9 +73,6 @@ pxr_cpp_bin(emHdBindings
 
 install(
     FILES 
-        ${CMAKE_CURRENT_BINARY_DIR}/emHdBindings.js 
-        ${CMAKE_CURRENT_BINARY_DIR}/emHdBindings.data 
-        ${CMAKE_CURRENT_BINARY_DIR}/emHdBindings.wasm 
-        ${CMAKE_CURRENT_BINARY_DIR}/emHdBindings.worker.js 
+    ${BUILD_FILES}
     DESTINATION hdEmscripten
 )
