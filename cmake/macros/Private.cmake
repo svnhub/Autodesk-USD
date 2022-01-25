@@ -257,7 +257,7 @@ function(_install_resource_files NAME pluginInstallPrefix pluginToLibraryPath)
         if (PXR_ENABLE_JS_SUPPORT)
             string(REGEX REPLACE "^lib\\/" "/" LOCAL_PATH "${resourcesPath}")
 
-            list(APPEND EMSCRIPTEN_RESOURCE_FILES "--embed-file ${EMSCRIPTEN_RESOURCE_FILE}@${LOCAL_PATH}/${dirPath}/${destFileName}")
+            list(APPEND EMSCRIPTEN_RESOURCE_FILES "--preload-file ${EMSCRIPTEN_RESOURCE_FILE}@${LOCAL_PATH}/${dirPath}/${destFileName}")
         endif()
         install(
             FILES ${resourceFile}
