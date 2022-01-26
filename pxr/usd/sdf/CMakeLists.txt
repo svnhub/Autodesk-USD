@@ -120,14 +120,6 @@ pxr_library(sdf
         valueTypePrivate.h
 
     CPPFILES
-        wrapLayerJs.cpp
-        wrapSpecJs.cpp
-        wrapPrimSpecJs.cpp
-        wrapPropertySpecJs.cpp
-        wrapRelationshipSpecJs.cpp
-        wrapAttributeSpecJs.cpp
-        wrapTypesJs.cpp
-        wrapValueTypeNameJs.cpp
         # Flex/Bison generated code
         path.lex.cpp
         textFileFormat.lex.cpp
@@ -164,6 +156,16 @@ pxr_library(sdf
         wrapValueTypeName.cpp
         wrapVariantSpec.cpp
         wrapVariantSetSpec.cpp
+
+    JS_CPPFILES
+        wrapLayerJs.cpp
+        wrapSpecJs.cpp
+        wrapPrimSpecJs.cpp
+        wrapPropertySpecJs.cpp
+        wrapRelationshipSpecJs.cpp
+        wrapAttributeSpecJs.cpp
+        wrapTypesJs.cpp
+        wrapValueTypeNameJs.cpp
 
     PYMODULE_FILES 
         __init__.py
