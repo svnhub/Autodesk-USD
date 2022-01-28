@@ -71,6 +71,8 @@ class HydraMesh {
     this._interface = hydraInterface;
     this._points = undefined;
     this._normals = undefined;
+    this._colors = undefined;
+    this._uvs = undefined;
     this._indices = undefined;
 
     const material = new THREE.MeshPhysicalMaterial( {
@@ -82,18 +84,16 @@ class HydraMesh {
     window.scene.add(this._mesh); // FIXME
   }
 
-  updateOrder(attribute, attributeName) {
+  updateOrder(attribute, attributeName, dimension = 3) {
     if (attribute && this._indices) {
       let values = [];
       for (let i = 0; i < this._indices.length; i++) {
         let index = this._indices[i]
-        values.push(
-          attribute[3*index],
-          attribute[3*index + 1],
-          attribute[3*index + 2],
-        )
+        for (let j = 0; j < dimension; ++j) {
+          values.push(attribute[dimension * index + j]);
+        }
       }
-      this._geometry.setAttribute( attributeName, new THREE.Float32BufferAttribute( values, 3 ) );
+      this._geometry.setAttribute( attributeName, new THREE.Float32BufferAttribute( values, dimension ) );
     }
   }
 
@@ -105,6 +105,13 @@ class HydraMesh {
     //this._geometry.setIndex( indicesArray );
     this.updateOrder(this._points, 'position');
     this.updateOrder(this._normals, 'normal');
+    if (this._colors) {
+      this.updateOrder(this._colors, 'color');
+    }
+    if (this._uvs) {
+      this.updateOrder(this._uvs, 'uv', 2);
+      this._geometry.attributes.uv2 = this._geometry.attributes.uv;
+    }
   }
 
   setTransform(matrix) {
@@ -118,6 +125,7 @@ class HydraMesh {
     this.updateOrder(this._normals, 'normal');
   }
 
+  // This is always called before prims are updated
   setMaterial(materialId) {
     console.log('Material: ' + materialId);
     if (this._interface.materials[materialId]) {
@@ -125,20 +133,68 @@ class HydraMesh {
     }
   }
 
-  updatePrimvar(name, data, dimension) {
+  setDisplayColor(data, interpolation) {
+    let wasDefaultMaterial = false;
+    if (this._mesh.material === defaultMaterial) {
+      this._mesh.material = this._mesh.material.clone();
+      wasDefaultMaterial = true;
+    }
+
+    this._colors = null;
+
+    if (interpolation === 'constant') {
+      this._mesh.material.color = new THREE.Color().fromArray(data);
+    } else if (interpolation === 'vertex') {
+      // Per-vertex buffer attribute
+      this._mesh.material.vertexColors = true;
+      if (wasDefaultMaterial) {
+        // Reset the pink debugging color
+        this._mesh.material.color = new THREE.Color(0xffffff);
+      }
+      this._colors = data.slice(0);
+      this.updateOrder(this._colors, 'color');
+    } else {
+      console.warn(`Unsupported displayColor interpolation type '${interpolation}'.`);
+    }
+  }
+
+  setUV(data, dimension, interpolation) {
+    // TODO: Support multiple UVs. For now, we simply set uv = uv2, which is required when a material has an aoMap.
+    this._uvs = null;
+
+    if (interpolation === 'facevarying') {
+      // The UV buffer has already been prepared on the C++ side, so we just set it
+      this._geometry.setAttribute('uv', new THREE.Float32BufferAttribute(data, dimension));
+    } else if (interpolation === 'vertex') {
+      // We have per-vertex UVs, so we need to sort them accordingly
+      this._uvs = data.slice(0);
+      this.updateOrder(this._uvs, 'uv', 2);
+    }
+    this._geometry.attributes.uv2 = this._geometry.attributes.uv;
+  }
+
+  updatePrimvar(name, data, dimension, interpolation) {
     if (name === 'points' || name === 'normals') {
+      // Points and normals are set separately
       return;
     }
+
+    console.log('Setting PrimVar: ' + name);
 
     // TODO: Support multiple UVs. For now, we simply set uv = uv2, which is required when a material has an aoMap.
     if (name.startsWith('st')) {
       name = 'uv';
     }
 
-    console.log('Setting PrimVar: ' + name);
-    this._geometry.setAttribute( name, new THREE.Float32BufferAttribute( data, dimension ) );
-    if (name === 'uv') {
-      this._geometry.attributes.uv2 = this._geometry.attributes.uv;
+    switch(name) {
+      case 'displayColor':
+        this.setDisplayColor(data, interpolation);
+        break;
+      case 'uv':
+        this.setUV(data, dimension, interpolation);
+        break;
+      default:
+        console.warn('Unsupported primvar', name);
     }
   }
 
@@ -202,7 +258,7 @@ class HydraMaterial {
         envMap: window.envMap,
       });
     }
-    this._material = defaultMaterial.clone();
+    this._material = defaultMaterial;
   }
 
   updateNode(networkId, path, parameters) {
@@ -300,14 +356,14 @@ class HydraMaterial {
       }
     }
 
-    // TODO: Ideally, we don't recreate the material on every update.
-    // Creating a new one requires to also update any meshes that reference it. So we're relying on the C++ side to
-    // call this before also calling `setMaterial` on the affected meshes.
     if (!mainMaterialNode) {
-      this._material = defaultMaterial.clone();
+      this._material = defaultMaterial;
       return;
     }
 
+    // TODO: Ideally, we don't recreate the material on every update.
+    // Creating a new one requires to also update any meshes that reference it. So we're relying on the C++ side to
+    // call this before also calling `setMaterial` on the affected meshes.
     console.log('Creating Material: ' + this._id);
     this._material = new THREE.MeshPhysicalMaterial({});
 

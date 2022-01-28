@@ -47,6 +47,15 @@ using namespace emscripten;
 ////////////////////////////////////////////////////////////////
 // Null Prims
 
+const std::map<HdInterpolation, std::string> InterpolationStrings = {
+    {HdInterpolationConstant, "constant"},
+    {HdInterpolationUniform, "uniform"},
+    {HdInterpolationVarying, "varying"},
+    {HdInterpolationVertex, "vertex"},
+    {HdInterpolationFaceVarying, "facevarying"},
+    {HdInterpolationInstance, "instance"}
+};
+
 void _runInMainThread(int funPointer) {
     std::function<void()>  *function = reinterpret_cast<std::function<void()>*>(funPointer);
     (*function)();
@@ -88,25 +97,51 @@ public:
                       HdDirtyBits     *dirtyBits,
                       TfToken const   &reprToken) override
     {
-        // A render delegate would typically pull values for each
-        // dirty bit.  Some tests depend on this behaviour to either
-        // update perf counters or test scene delegate getter workflow.
+        // Get the id of this mesh. This is used to get various resources associated with it.
         SdfPath const& id = GetId();
+
+        // TODO: Debug
+        //std::cout << "Syncing mesh " << id.GetAsString() << "..." << std::endl;
+
+        // A mesh can have up to 2 representation descriptions (e.g. different draw style for front and back faces).
+        // We only consider the first one. This could be improved in the future.
+        _MeshReprConfig::DescArray descs = _GetReprDesc(reprToken);
+        const HdMeshReprDesc &desc = descs[0];
+
+        // Get all the dirty computed primvars
+        // TODO: Debug
+        // std::cout << "  Evaluating dirty computed primvars..." << std::endl;
+        // HdExtComputationPrimvarDescriptorVector dirtyCompPrimvars;
+        // for (size_t i=0; i < HdInterpolationCount; ++i) {
+        //     HdExtComputationPrimvarDescriptorVector compPrimvars;
+        //     HdInterpolation interp = static_cast<HdInterpolation>(i);
+        //     compPrimvars = delegate->GetExtComputationPrimvarDescriptors
+        //                                 (GetId(),interp);
+
+        //     for (auto const& pv: compPrimvars) {
+        //         if (HdChangeTracker::IsPrimvarDirty(*dirtyBits, id, pv.name)) {
+        //             dirtyCompPrimvars.emplace_back(pv);
+        //             // TODO: Debug
+        //             std::cout << "    " << pv.name.GetText() << " is dirty." << std::endl;
+        //         }
+        //     }
+        // }
 
         // PrimId dirty bit is internal to Hydra.
 
-        if (HdChangeTracker::IsExtentDirty(*dirtyBits, id)) {
-            GetExtent(delegate);
-        }
+        // if (HdChangeTracker::IsExtentDirty(*dirtyBits, id)) {
+        //     GetExtent(delegate);
+        // }
 
-        if (HdChangeTracker::IsDisplayStyleDirty(*dirtyBits, id)) {
-            delegate->GetDisplayStyle(id);
-        }
+        // if (HdChangeTracker::IsDisplayStyleDirty(*dirtyBits, id)) {
+        //     delegate->GetDisplayStyle(id);
+        // }
 
-        // Material Id doesn't have a change tracker test
+        // Materials need to be synced before primvars, to allow the JS side to apply primvar information like
+        // displayColor if no other material is set.
         if (*dirtyBits & HdChangeTracker::DirtyMaterialId) {
-        auto materialId = delegate->GetMaterialId(id);
-
+            auto materialId = delegate->GetMaterialId(id);
+            //std::cout << "Setting material '" << materialId.GetAsString() << "' for mesh '" << id << "'." << std::endl;
             runInMainThread([&]() {
                 _rPrim.call<void>("setMaterial", materialId.GetAsString());
             });
@@ -121,15 +156,6 @@ public:
                 _rPrim.call<void>("updatePoints", val(typed_memory_view(3 * _points.size(), reinterpret_cast<float*>(_points.data()))));
             });
         }
-
-        // XXX: A mesh repr can have multiple repr decs; this is done, for example,
-        // when the drawstyle specifies different rasterizing modes between front
-        // faces and back faces.
-        // With raytracing, this concept makes less sense, but
-        // combining semantics of two HdMeshReprDesc is tricky in the general case.
-        // For now, HdEmbreeMesh only respects the first desc; this should be fixed.
-        _ReprDescConfigs<HdMeshReprDesc, 2>::DescArray descs = _GetReprDesc(reprToken);
-        const HdMeshReprDesc &desc = descs[0];
 
         // The repr defines whether we should compute smooth normals for this mesh:
         // per-vertex normals taken as an average of adjacent faces, and
@@ -184,7 +210,6 @@ public:
         if (HdChangeTracker::IsAnyPrimvarDirty(*dirtyBits, id)) {
             _SyncPrimvars(delegate, *dirtyBits);
         }
-
 
         // Update the smooth normals in steps:
         // 1. If the topology is dirty, update the adjacency table, a processed
@@ -304,6 +329,24 @@ private:
     bool _normalsValid;
     bool _smoothNormals;
 
+    void _SendPrimvar(const VtValue &value, const std::string &name, const HdInterpolation &interpolation)
+    {
+        const std::string &ip = InterpolationStrings.at(interpolation);
+        if (value.CanCast<VtVec2fArray>()) {
+            VtVec2fArray primvarData = value.Get<VtVec2fArray>();
+            _rPrim.call<void>("updatePrimvar", name, val(typed_memory_view(2 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 2, ip);
+        }
+        if (value.CanCast<VtVec3fArray>()) {
+            VtVec3fArray primvarData = value.Get<VtVec3fArray>();
+            _rPrim.call<void>("updatePrimvar", name, val(typed_memory_view(3 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 3, ip);
+        }
+        if (value.CanCast<VtVec4fArray>()) {
+            VtVec4fArray primvarData = value.Get<VtVec4fArray>();
+            if (name.compare("displayColor") == 0)std::cout << "  displayColor is a vector of size 4. Data size is " << primvarData.size() << std::endl;
+            _rPrim.call<void>("updatePrimvar", name, val(typed_memory_view(4 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 4, ip);
+        }
+    }
+
     void _SyncPrimvars(HdSceneDelegate *delegate,
                        HdDirtyBits      dirtyBits)
     {
@@ -311,10 +354,9 @@ private:
             SdfPath const &id = GetId();
             for (size_t interpolation = HdInterpolationConstant;
                         interpolation < HdInterpolationCount;
-                    ++interpolation) {
-                HdPrimvarDescriptorVector primvars =
-                        GetPrimvarDescriptors(delegate,
-                                static_cast<HdInterpolation>(interpolation));
+                        ++interpolation) {
+                HdInterpolation ip = static_cast<HdInterpolation>(interpolation);
+                HdPrimvarDescriptorVector primvars = GetPrimvarDescriptors(delegate, ip);
 
                 size_t numPrimVars = primvars.size();
                 for (size_t primVarNum = 0;
@@ -325,31 +367,35 @@ private:
                     if (HdChangeTracker::IsPrimvarDirty(dirtyBits,
                                                         id,
                                                         primvar.name)) {
-                        VtValue value =  GetPrimvar(delegate, primvar.name);
+                        VtValue value = GetPrimvar(delegate, primvar.name);
 
-                        HdVtBufferSource buffer(primvar.name, value);
+                        switch(ip) {
+                            case HdInterpolationFaceVarying: {
+                                HdVtBufferSource buffer(primvar.name, value);
 
-                        VtValue triangulated;
-                        if (!_meshUtil->ComputeTriangulatedFaceVaryingPrimvar(
-                                buffer.GetData(),
-                                buffer.GetNumElements(),
-                                buffer.GetTupleType().type,
-                                &triangulated)) {
-                            TF_CODING_ERROR("[%s] Could not triangulate face-varying data.",
-                                primvar.name.GetText());
-                            continue;
-                        }
-                        if (triangulated.CanCast<VtVec2fArray>()) {
-                        VtVec2fArray primvarData = triangulated.Get<VtVec2fArray>();
-                        _rPrim.call<void>("updatePrimvar", primvar.name.GetString(), val(typed_memory_view(2 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 2);
-                        }
-                        if (triangulated.CanCast<VtVec3fArray>()) {
-                        VtVec3fArray primvarData = triangulated.Get<VtVec3fArray>();
-                        _rPrim.call<void>("updatePrimvar", primvar.name.GetString(), val(typed_memory_view(3 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 3);
-                        }
-                        if (triangulated.CanCast<VtVec4fArray>()) {
-                        VtVec4fArray primvarData = triangulated.Get<VtVec4fArray>();
-                        _rPrim.call<void>("updatePrimvar", primvar.name.GetString(), val(typed_memory_view(4 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 4);
+                                VtValue triangulated;
+                                if (!_meshUtil->ComputeTriangulatedFaceVaryingPrimvar(
+                                        buffer.GetData(),
+                                        buffer.GetNumElements(),
+                                        buffer.GetTupleType().type,
+                                        &triangulated)) {
+                                    TF_CODING_ERROR("[%s] Could not triangulate face-varying data.",
+                                        primvar.name.GetText());
+                                    continue;
+                                }
+
+                                _SendPrimvar(triangulated, primvar.name.GetString(), ip);
+                                break;
+                            }
+                            case HdInterpolationConstant:
+                            case HdInterpolationVertex: {
+                                _SendPrimvar(value, primvar.name.GetText(), ip);
+                                break;
+                            }
+                            default:
+                                TF_WARN("Unsupported interpolation type '%s' for primvar %s",
+                                    InterpolationStrings.at(ip).c_str(),
+                                    primvar.name.GetText());
                         }
                     }
                 }
