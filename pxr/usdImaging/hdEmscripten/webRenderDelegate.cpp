@@ -342,7 +342,6 @@ private:
         }
         if (value.CanCast<VtVec4fArray>()) {
             VtVec4fArray primvarData = value.Get<VtVec4fArray>();
-            if (name.compare("displayColor") == 0)std::cout << "  displayColor is a vector of size 4. Data size is " << primvarData.size() << std::endl;
             _rPrim.call<void>("updatePrimvar", name, val(typed_memory_view(4 * primvarData.size(), reinterpret_cast<float*>(primvarData.data()))), 4, ip);
         }
     }
