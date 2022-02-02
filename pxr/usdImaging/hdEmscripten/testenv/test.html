@@ -22,7 +22,7 @@
       req.responseType = "arraybuffer";
 
       req.onload = function (oEvent) {
-        let arrayBuffer = req.response; // Note: not oReq.responseText
+        let arrayBuffer = req.response;
         if (arrayBuffer) {
           resolve(arrayBuffer);
         } else {
