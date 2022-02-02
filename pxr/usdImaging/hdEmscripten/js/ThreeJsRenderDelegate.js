@@ -77,10 +77,13 @@ class HydraMesh {
 
     const material = new THREE.MeshPhysicalMaterial( {
       side: THREE.DoubleSide,
-      color: new THREE.Color(0x00ff00) // a green color to indicate a missing material
-    } );
+      color: new THREE.Color(0xa0a0a0) // a gray default color      
+    });
 
     this._mesh = new THREE.Mesh( this._geometry, material );
+    this._mesh.castShadow = true;
+    this._mesh.receiveShadow = true;
+
     window.scene.add(this._mesh); // FIXME
   }
 
@@ -254,7 +257,7 @@ class HydraMaterial {
     if (!defaultMaterial) {
       defaultMaterial = new THREE.MeshPhysicalMaterial({
         side: THREE.DoubleSide,
-        color: new THREE.Color(0xff2997), // a bright pink color to indicate a missing material
+        color: new THREE.Color(0xa0a0a0), // a gray default color
         envMap: window.envMap,
       });
     }
@@ -310,6 +313,9 @@ class HydraMaterial {
         const clonedTexture = texture.clone();
         clonedTexture.format = HydraMaterial.channelMap[channel];
         clonedTexture.needsUpdate = true;
+        clonedTexture.wrapS = THREE.RepeatWrapping;
+        clonedTexture.wrapT = THREE.RepeatWrapping;
+
         this._material[materialParameterMapName] = clonedTexture;
 
         this._material.needsUpdate = true;
