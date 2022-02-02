@@ -37,7 +37,7 @@ class TextureRegistry {
         return;
       }
 
-      let blob = new Blob([loadedFile.slice(0)], {type: filetype});
+      let blob = new Blob([loadedFile.slice()], {type: filetype});
       let blobUrl = URL.createObjectURL(blob);
 
       // Load the texture
@@ -77,14 +77,14 @@ class HydraMesh {
 
     const material = new THREE.MeshPhysicalMaterial( {
       side: THREE.DoubleSide,
-      color: new THREE.Color(0xa0a0a0) // a gray default color      
+      color: new THREE.Color(0xa0a0a0) // a gray default color
     });
 
     this._mesh = new THREE.Mesh( this._geometry, material );
     this._mesh.castShadow = true;
     this._mesh.receiveShadow = true;
 
-    window.scene.add(this._mesh); // FIXME
+    window.scene.add(this._mesh);
   }
 
   updateOrder(attribute, attributeName, dimension = 3) {
@@ -105,7 +105,6 @@ class HydraMesh {
     for (let i = 0; i< indices.length; i++) {
       this._indices.push(indices[i]);
     }
-    //this._geometry.setIndex( indicesArray );
     this.updateOrder(this._points, 'position');
     this.updateOrder(this._normals, 'normal');
     if (this._colors) {
@@ -124,7 +123,7 @@ class HydraMesh {
   }
 
   updateNormals(normals) {
-    this._normals = normals.slice(0);
+    this._normals = normals.slice();
     this.updateOrder(this._normals, 'normal');
   }
 
@@ -151,10 +150,10 @@ class HydraMesh {
       // Per-vertex buffer attribute
       this._mesh.material.vertexColors = true;
       if (wasDefaultMaterial) {
-        // Reset the pink debugging color
+        // Reset the debugging color
         this._mesh.material.color = new THREE.Color(0xffffff);
       }
-      this._colors = data.slice(0);
+      this._colors = data.slice();
       this.updateOrder(this._colors, 'color');
     } else {
       console.warn(`Unsupported displayColor interpolation type '${interpolation}'.`);
@@ -167,10 +166,10 @@ class HydraMesh {
 
     if (interpolation === 'facevarying') {
       // The UV buffer has already been prepared on the C++ side, so we just set it
-      this._geometry.setAttribute('uv', new THREE.Float32BufferAttribute(data, dimension));
+      this._geometry.setAttribute('uv', new THREE.Float32BufferAttribute(data.slice(), dimension));
     } else if (interpolation === 'vertex') {
       // We have per-vertex UVs, so we need to sort them accordingly
-      this._uvs = data.slice(0);
+      this._uvs = data.slice();
       this.updateOrder(this._uvs, 'uv', 2);
     }
     this._geometry.attributes.uv2 = this._geometry.attributes.uv;
@@ -202,7 +201,7 @@ class HydraMesh {
   }
 
   updatePoints(points) {
-    this._points = points.slice(0);
+    this._points = points.slice();
     this.updateOrder(this._points, 'position');
   }
 
@@ -407,10 +406,7 @@ export class RenderDelegateInterface {
   }
 
   createBPrim(typeId, id) {
-    console.log('Creating BPrim: ' + typeId + ' ' + id);
-    /*let mesh = new HydraMesh(id, this);
-    this.meshes[id] = mesh;
-    return mesh;*/
+    console.warn('BPrims are not supported!');
   }
 
   createSPrim(typeId, id) {
