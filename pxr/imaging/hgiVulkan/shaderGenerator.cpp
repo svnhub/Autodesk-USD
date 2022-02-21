@@ -163,8 +163,8 @@ HgiVulkanShaderGenerator::_WriteConstantParams(
         return;
     }
     CreateShaderSection<HgiVulkanBlockShaderSection>(
-        "ParamBuffer",
-        parameters);
+            "ParamBuffer",
+            parameters, 0));
 }
 
 void
@@ -185,9 +185,9 @@ HgiVulkanShaderGenerator::_WriteTextures(
         }
 
         CreateShaderSection<HgiVulkanTextureShaderSection>(
-            desc.nameInShader,
-            _bindIndex,
-            desc.dimensions,
+                desc.nameInShader,
+                _bindIndex,
+                desc.dimensions,
             desc.format,
             desc.textureType,
             desc.arraySize,
@@ -210,9 +210,9 @@ HgiVulkanShaderGenerator::_WriteBuffers(
             HgiShaderSectionAttribute{"binding", std::to_string(_bindIndex)}};
 
         CreateShaderSection<HgiVulkanBufferShaderSection>(
-            bufferDescription.nameInShader,
-            _bindIndex,
-            bufferDescription.type,
+                bufferDescription.nameInShader,
+                _bindIndex,
+                bufferDescription.type,
             attrs);
 				
         // In Vulkan buffers and textures cannot have the same binding index.
@@ -254,8 +254,8 @@ HgiVulkanShaderGenerator::_WriteInOuts(
             auto const& keyword = takenInParams.find(role);
             if (keyword != takenInParams.end()) {
                 CreateShaderSection<HgiVulkanKeywordShaderSection>(
-                    paramName,
-                    param.type,
+                        paramName,
+                        param.type,
                     keyword->second);
                 continue;
             }
@@ -267,9 +267,9 @@ HgiVulkanShaderGenerator::_WriteInOuts(
         };
 
         CreateShaderSection<HgiVulkanMemberShaderSection>(
-            paramName,
-            param.type,
-            attrs,
+                paramName,
+                param.type,
+                attrs,
             qualifier);
         counter++;
     }

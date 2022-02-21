@@ -157,9 +157,11 @@ HgiVulkanMemberShaderSection::WriteType(std::ostream& ss) const
 
 HgiVulkanBlockShaderSection::HgiVulkanBlockShaderSection(
     const std::string &identifier,
-    const HgiShaderFunctionParamDescVector &parameters)
+    const HgiShaderFunctionParamDescVector &parameters,
+    const uint32_t bindingNo)
   : HgiVulkanShaderSection(identifier)
   , _parameters(parameters)
+    , _bindingNo(bindingNo)
 {
 }
 
@@ -168,7 +170,10 @@ HgiVulkanBlockShaderSection::~HgiVulkanBlockShaderSection() = default;
 bool
 HgiVulkanBlockShaderSection::VisitGlobalMemberDeclarations(std::ostream &ss)
 {
-    ss << "layout(push_constant) " << "uniform" << " ";
+
+    std::string binding = _bindingNo == -1 ? "push_constant" : ("binding = " + std::to_string(_bindingNo));
+
+    ss << "layout( "<< binding<< ") " << "uniform" << " ";
     WriteIdentifier(ss);
     ss << "\n";
     ss << "{\n";

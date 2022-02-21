@@ -23,6 +23,7 @@
 //
 #include "pxr/imaging/hgiVulkan/vulkan.h"
 #include "pxr/imaging/hgiVulkan/conversions.h"
+#include "pxr/imaging/hgiVulkan/buffer.h"
 
 #include "pxr/base/tf/diagnostic.h"
 #include "pxr/base/tf/iterator.h"
@@ -160,6 +161,8 @@ _BufferUsageTable[][2] =
     {HgiBufferUsageIndex32, VK_BUFFER_USAGE_INDEX_BUFFER_BIT},
     {HgiBufferUsageVertex,  VK_BUFFER_USAGE_VERTEX_BUFFER_BIT},
     {HgiBufferUsageStorage, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT},
+    {HgiBufferUsageAccelerationStructureBuildInputReadOnly, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR},
+    {HgiBufferUsageShaderDeviceAddress, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT},
 };
 static_assert(HgiBufferUsageCustomBitsBegin == 1 << 4, "");
 
@@ -490,6 +493,11 @@ HgiVulkanConversions::GetBufferUsage(HgiBufferUsage bu)
     VkBufferUsageFlags vkFlags = 0;
     for (const auto& f : _BufferUsageTable) {
         if (bu & f[0]) vkFlags |= f[1];
+    }
+
+    if (!(bu & HgiBufferUsageNoTransfer)) {
+        vkFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT |
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT;
     }
 
     if (vkFlags==0) {

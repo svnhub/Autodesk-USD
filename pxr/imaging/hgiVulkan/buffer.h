@@ -1,3 +1,4 @@
+#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgiVulkan/buffer.h"
 //
 // Copyright 2020 Pixar
 //
@@ -43,79 +44,90 @@ class HgiVulkanBuffer final : public HgiBuffer
 {
 public:
     HGIVULKAN_API
-    ~HgiVulkanBuffer() override;
+        ~HgiVulkanBuffer() override;
 
     HGIVULKAN_API
-    size_t GetByteSizeOfResource() const override;
+        size_t GetByteSizeOfResource() const override;
 
     HGIVULKAN_API
-    uint64_t GetRawResource() const override;
+        uint64_t GetRawResource() const override;
 
     HGIVULKAN_API
-    void* GetCPUStagingAddress() override;
+        void* GetCPUStagingAddress() override;
 
     /// Returns true if the provided ptr matches the address of staging buffer.
     HGIVULKAN_API
-    bool IsCPUStagingAddress(const void* address) const;
+        bool IsCPUStagingAddress(const void* address) const;
 
     /// Returns the vulkan buffer.
     HGIVULKAN_API
-    VkBuffer GetVulkanBuffer() const;
+        VkBuffer GetVulkanBuffer() const;
 
     /// Returns the memory allocation
     HGIVULKAN_API
-    VmaAllocation GetVulkanMemoryAllocation() const;
+        VmaAllocation GetVulkanMemoryAllocation() const;
 
     /// Returns the staging buffer.
     HGIVULKAN_API
-    HgiVulkanBuffer* GetStagingBuffer() const;
+        HgiVulkanBuffer* GetStagingBuffer() const;
 
     /// Returns the device used to create this object.
     HGIVULKAN_API
-    HgiVulkanDevice* GetDevice() const;
+        HgiVulkanDevice* GetDevice() const;
 
     /// Returns the (writable) inflight bits of when this object was trashed.
     HGIVULKAN_API
-    uint64_t & GetInflightBits();
+        uint64_t& GetInflightBits();
 
     /// Creates a staging buffer.
     /// The caller is responsible for the lifetime (destruction) of the buffer.
     HGIVULKAN_API
-    static HgiVulkanBuffer* CreateStagingBuffer(
-        HgiVulkanDevice* device,
-        HgiBufferDesc const& desc);
+        static HgiVulkanBuffer* CreateStagingBuffer(
+            HgiVulkanDevice* device,
+            HgiBufferDesc const& desc);
 
 protected:
     friend class HgiVulkan;
 
     // Constructor for making buffers
     HGIVULKAN_API
-    HgiVulkanBuffer(
-        HgiVulkan* hgi,
-        HgiVulkanDevice* device,
-        HgiBufferDesc const& desc);
+        HgiVulkanBuffer(
+            HgiVulkan* hgi,
+            HgiVulkanDevice* device,
+            HgiBufferDesc const& desc);
 
     // Constructor for making staging buffers
     HGIVULKAN_API
-    HgiVulkanBuffer(
-        HgiVulkanDevice* device,
-        VkBuffer vkBuffer,
-        VmaAllocation vmaAllocation,
-        HgiBufferDesc const& desc);
+        HgiVulkanBuffer(
+            HgiVulkanDevice* device,
+            VkBuffer vkBuffer,
+            VmaAllocation vmaAllocation,
+            HgiBufferDesc const& desc);
 
 private:
+    void allocateDirect(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, void* data);
+
     HgiVulkanBuffer() = delete;
-    HgiVulkanBuffer & operator=(const HgiVulkanBuffer&) = delete;
+    HgiVulkanBuffer& operator=(const HgiVulkanBuffer&) = delete;
     HgiVulkanBuffer(const HgiVulkanBuffer&) = delete;
 
     HgiVulkanDevice* _device;
     VkBuffer _vkBuffer;
+    VkDeviceMemory _vkDeviceMemory;
     VmaAllocation _vmaAllocation;
     uint64_t _inflightBits;
     HgiVulkanBuffer* _stagingBuffer;
     void* _cpuStagingAddress;
 };
 
+
+enum HgiVulkanBufferUsageBits : HgiBits
+{
+    HgiBufferUsageAccelerationStructureBuildInputReadOnly = 1 << 4,
+    HgiBufferUsageShaderDeviceAddress = 1 << 5,
+    HgiBufferUsageNoTransfer = 1 << 6,
+    HgiBufferUsageRayTracingExtensions = 1 << 7,
+};
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

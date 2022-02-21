@@ -1536,6 +1536,11 @@ def InstallUSD(context, force, buildArgs):
         else:
             extraArgs.append('-DPXR_BUILD_TUTORIALS=OFF')
 
+        if context.buildVulkan:
+            extraArgs.append('-DPXR_ENABLE_VULKAN_SUPPORT=ON')
+        else:
+            extraArgs.append('-DPXR_ENABLE_VULKAN_SUPPORT=OFF')
+
         if context.buildTools:
             extraArgs.append('-DPXR_BUILD_USD_TOOLS=ON')
         else:
@@ -1622,6 +1627,7 @@ def InstallUSD(context, force, buildArgs):
 
         # Make sure to use boost installed by the build script and not any
         # system installed boost
+        extraArgs.append('-DPXR_LIB_PREFIX=')
         extraArgs.append('-DBoost_NO_BOOST_CMAKE=On')
         extraArgs.append('-DBoost_NO_SYSTEM_PATHS=True')
         extraArgs += buildArgs
@@ -1783,6 +1789,11 @@ subgroup.add_argument("--tutorials", dest="build_tutorials", action="store_true"
                       default=True, help="Build tutorials (default)")
 subgroup.add_argument("--no-tutorials", dest="build_tutorials", action="store_false",
                       help="Do not build tutorials")
+subgroup = group.add_mutually_exclusive_group()
+subgroup.add_argument("--vulkan", dest="build_vulkan", action="store_true",
+                      default=True, help="Build vulkan (default)")
+subgroup.add_argument("--no-vulkan", dest="build_vulkan", action="store_false",
+                      help="Do not build vulkan")
 subgroup = group.add_mutually_exclusive_group()
 subgroup.add_argument("--tools", dest="build_tools", action="store_true",
                      default=True, help="Build USD tools (default)")
@@ -2004,6 +2015,7 @@ class InstallContext:
         self.buildPython = args.build_python
         self.buildExamples = args.build_examples
         self.buildTutorials = args.build_tutorials
+        self.buildVulkan = args.build_vulkan
         self.buildTools = args.build_tools
 
         # - Imaging
@@ -2263,6 +2275,7 @@ summaryMsg += """\
     Tests                       {buildTests}
     Examples                    {buildExamples}
     Tutorials                   {buildTutorials}
+    Vulkan                   {buildVulkan}
     Tools                       {buildTools}
     Alembic Plugin              {buildAlembic}
       HDF5 support:             {enableHDF5}
@@ -2322,6 +2335,7 @@ summaryMsg = summaryMsg.format(
     buildTests=("On" if context.buildTests else "Off"),
     buildExamples=("On" if context.buildExamples else "Off"),
     buildTutorials=("On" if context.buildTutorials else "Off"),
+    buildVulkan=("On" if context.buildVulkan else "Off"),
     buildTools=("On" if context.buildTools else "Off"),
     buildAlembic=("On" if context.buildAlembic else "Off"),
     buildDraco=("On" if context.buildDraco else "Off"),

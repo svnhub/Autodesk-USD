@@ -148,9 +148,10 @@ class HgiVulkanBlockShaderSection final: public HgiVulkanShaderSection
 {
 public:
     HGIVULKAN_API
-    explicit HgiVulkanBlockShaderSection(
-            const std::string &identifier,
-            const HgiShaderFunctionParamDescVector &parameters);
+        explicit HgiVulkanBlockShaderSection(
+            const std::string& identifier,
+            const HgiShaderFunctionParamDescVector& parameters,
+            const uint32_t bindingNo = -1);
 
     HGIVULKAN_API
     ~HgiVulkanBlockShaderSection() override;
@@ -160,6 +161,8 @@ public:
 
 private:
     const HgiShaderFunctionParamDescVector _parameters;
+    const uint32_t _bindingNo;
+
 };
 
 /// \class HgiVulkanMemberShaderSection

@@ -30,6 +30,7 @@
 #include "pxr/imaging/hgiVulkan/pipelineCache.h"
 
 #include "pxr/base/tf/diagnostic.h"
+#include <iostream>
 
 #define VMA_IMPLEMENTATION
     #include "pxr/imaging/hgiVulkan/vk_mem_alloc.h"
@@ -103,8 +104,8 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
             physicalDevices) == VK_SUCCESS
     );
 
+    VkPhysicalDeviceProperties props;
     for (uint32_t i = 0; i < physicalDeviceCount; i++) {
-        VkPhysicalDeviceProperties props;
         vkGetPhysicalDeviceProperties(physicalDevices[i], &props);
 
         uint32_t familyIndex =
@@ -117,7 +118,7 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
             continue;
         }
 
-        if (props.apiVersion < VK_API_VERSION_1_0) continue;
+        if (props.apiVersion < VK_API_VERSION_1_2) continue;
 
         // Try to find a discrete device. Until we find a discrete device,
         // store the first non-discrete device as fallback in case we never
@@ -132,10 +133,16 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
         }
     }
 
+
     if (!_vkPhysicalDevice) {
         TF_CODING_ERROR("VULKAN_ERROR: Unable to determine physical device");
         return;
     }
+
+
+    std::cout << "API: " << VK_VERSION_MAJOR(props.apiVersion) << "." << VK_VERSION_MINOR(props.apiVersion) << "." << VK_VERSION_PATCH(props.apiVersion) << std::endl;
+    std::cout << "Driver: " << VK_VERSION_MAJOR(props.driverVersion) << "." << VK_VERSION_MINOR(props.driverVersion) << "." << VK_VERSION_PATCH(props.driverVersion) << std::endl;
+    std::cout << "Device: " << props.deviceName << std::endl;
 
     //
     // Query supported extensions for device
@@ -173,8 +180,20 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
     queueInfo.pQueuePriorities = queuePriorities;
 
     std::vector<const char*> extensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-    };
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+        "VK_KHR_ray_tracing_pipeline",
+        "VK_KHR_acceleration_structure",
+        "VK_KHR_deferred_host_operations",
+        "VK_KHR_spirv_1_4",
+        "VK_KHR_shader_float_controls",
+        "VK_KHR_get_memory_requirements2",
+        "VK_EXT_descriptor_indexing",
+        "VK_KHR_buffer_device_address",
+        "VK_KHR_deferred_host_operations",
+        "VK_KHR_pipeline_library",
+        "VK_KHR_maintenance3",
+        "VK_KHR_maintenance1"
+};
 
     // Allow certain buffers/images to have dedicated memory allocations to
     // improve performance on some GPUs.
@@ -238,13 +257,46 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
     // shaders and vertex data can remain the same between opengl and vulkan.
     extensions.push_back(VK_KHR_MAINTENANCE1_EXTENSION_NAME);
 
+    VkPhysicalDeviceVulkan12Features vulkan12Features = {};
+    vulkan12Features.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES;
+    vulkan12Features.bufferDeviceAddress = true;
+    vulkan12Features.timelineSemaphore = true;
+    vulkan12Features.descriptorIndexing = true;
+    vulkan12Features.pNext = nullptr;// _capabilities->vkDeviceFeatures2.pNext;
+
+    VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;
+    rayTracingPipelineFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR;
+    rayTracingPipelineFeatures.rayTracingPipelineTraceRaysIndirect = VK_FALSE;
+    rayTracingPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplay = VK_FALSE;
+    rayTracingPipelineFeatures.rayTracingPipelineShaderGroupHandleCaptureReplayMixed = VK_FALSE;
+    rayTracingPipelineFeatures.rayTraversalPrimitiveCulling = VK_FALSE;
+    rayTracingPipelineFeatures.pNext = &vulkan12Features;
+    rayTracingPipelineFeatures.rayTracingPipeline = VK_TRUE;
+
+    VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures;
+    accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+    accelerationStructureFeatures.pNext = &rayTracingPipelineFeatures;
+    accelerationStructureFeatures.accelerationStructure = VK_TRUE;
+    accelerationStructureFeatures.accelerationStructureCaptureReplay = VK_TRUE;
+    accelerationStructureFeatures.accelerationStructureIndirectBuild = VK_FALSE;
+    accelerationStructureFeatures.accelerationStructureHostCommands = VK_FALSE;
+    accelerationStructureFeatures.descriptorBindingAccelerationStructureUpdateAfterBind = VK_FALSE;
+
+    VkDeviceCreateInfo createInfo = { VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+    createInfo.queueCreateInfoCount = 1;
+    createInfo.pQueueCreateInfos = &queueInfo;
+    createInfo.ppEnabledExtensionNames = extensions.data();
+    createInfo.enabledExtensionCount = (uint32_t)extensions.size();
+    createInfo.pNext = &accelerationStructureFeatures;
+
+
     // Enabling certain features may incure a performance hit
     // (e.g. robustBufferAccess), so only enable the features we will use.
     VkPhysicalDeviceFeatures2 features =
         {VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2};
 
     //extension features
-    features.pNext = _capabilities->vkDeviceFeatures2.pNext;
+    features.pNext = &createInfo;
 
     features.features.multiDrawIndirect =
         _capabilities->vkDeviceFeatures.multiDrawIndirect;
@@ -273,13 +325,6 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
         features.features.geometryShader =
             _capabilities->vkDeviceFeatures.geometryShader;
     #endif
-
-    VkDeviceCreateInfo createInfo = {VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
-    createInfo.queueCreateInfoCount = 1;
-    createInfo.pQueueCreateInfos = &queueInfo;
-    createInfo.ppEnabledExtensionNames = extensions.data();
-    createInfo.enabledExtensionCount = (uint32_t) extensions.size();
-    createInfo.pNext = &features;
 
     TF_VERIFY(
         vkCreateDevice(
