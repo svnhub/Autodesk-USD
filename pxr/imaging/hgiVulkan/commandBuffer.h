@@ -119,6 +119,10 @@ public:
     HGIVULKAN_API
     void RunAndClearCompletedHandlers();
 
+    VkCommandBuffer GetVulkanCommandBuffer() {
+        return _vkCommandBuffer;
+    }
+
 private:
     HgiVulkanCommandBuffer() = delete;
     HgiVulkanCommandBuffer & operator= (const HgiVulkanCommandBuffer&) = delete;

@@ -76,7 +76,7 @@ uint32_t getMemoryType(uint32_t typeBits, const VkPhysicalDeviceMemoryProperties
 }
 
 
-void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, void* data)
+void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, const void* data)
 {
 
     VkDevice device = _device->GetVulkanDevice();
@@ -121,6 +121,9 @@ void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo,
         vkUnmapMemory(device, _vkDeviceMemory);
     }
 #endif
+
+    VK_CHECK_RESULT(vkBindBufferMemory(device, _vkBuffer, _vkDeviceMemory, 0));
+
 }
 
 
@@ -151,7 +154,7 @@ HgiVulkanBuffer::HgiVulkanBuffer(
     if (cannotUseVMA) {
         uint32_t memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
 
-        allocateDirect(bi, memoryProperties, 0, nullptr);
+        allocateDirect(bi, memoryProperties, desc.byteSize, desc.initialData);
     }
     else
     {
@@ -315,8 +318,30 @@ HgiVulkanBuffer::GetInflightBits()
     return _inflightBits;
 }
 
-HgiVulkanBuffer*
-HgiVulkanBuffer::CreateStagingBuffer(
+HgiVulkanDeviceAddress HgiVulkanBuffer::GetDeviceAddress()
+{
+    HgiVulkanDeviceAddress addr = {};
+    VkBufferDeviceAddressInfoKHR bufferDeviceAI{};
+    bufferDeviceAI.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    bufferDeviceAI.buffer = _vkBuffer;
+    addr.deviceAddress = _device->vkGetBufferDeviceAddressKHR(_device->GetVulkanDevice(), &bufferDeviceAI);
+
+    return addr;
+}
+
+HgiVulkanConstDeviceAddress HgiVulkanBuffer::GetConstDeviceAddress()
+{
+    HgiVulkanConstDeviceAddress addr = {};
+    VkBufferDeviceAddressInfoKHR bufferDeviceAI{};
+    bufferDeviceAI.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
+    bufferDeviceAI.buffer = _vkBuffer;
+    addr.deviceAddress = _device->vkGetBufferDeviceAddressKHR(_device->GetVulkanDevice(), &bufferDeviceAI);
+
+    return addr;
+}
+
+
+HgiVulkanBuffer* HgiVulkanBuffer::CreateStagingBuffer(
     HgiVulkanDevice* device,
     HgiBufferDesc const& desc)
 {

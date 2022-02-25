@@ -108,6 +108,16 @@ private:
     uint64_t _inflightBits;
 };
 
+enum HgiVulkanShaderStageBits : HgiBits
+{
+    HgiShaderStageRayGen = 1 << 6,
+    HgiShaderStageAnyHit = 1 << 7,
+    HgiShaderStageClosestHit = 1 << 8,
+    HgiShaderStageMiss = 1 << 9,
+    HgiShaderStageIntersection = 1 << 10,
+    HgiShaderStageCallable = 1 << 11
+};
+
 
 PXR_NAMESPACE_CLOSE_SCOPE
 

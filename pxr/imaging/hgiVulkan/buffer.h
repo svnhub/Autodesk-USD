@@ -1,4 +1,5 @@
 #line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgiVulkan/buffer.h"
+#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgiVulkan/buffer.h"
 //
 // Copyright 2020 Pixar
 //
@@ -35,6 +36,8 @@ class HgiVulkan;
 class HgiVulkanCommandBuffer;
 class HgiVulkanDevice;
 
+using HgiVulkanDeviceAddress = VkDeviceOrHostAddressKHR;
+using HgiVulkanConstDeviceAddress = VkDeviceOrHostAddressConstKHR;
 ///
 /// \class HgiVulkanBuffer
 ///
@@ -77,6 +80,14 @@ public:
 
     /// Returns the (writable) inflight bits of when this object was trashed.
     HGIVULKAN_API
+        HgiVulkanDeviceAddress GetDeviceAddress();
+
+    /// Returns the (writable) inflight bits of when this object was trashed.
+    HGIVULKAN_API
+        HgiVulkanConstDeviceAddress GetConstDeviceAddress();
+
+    /// Returns the (writable) inflight bits of when this object was trashed.
+    HGIVULKAN_API
         uint64_t& GetInflightBits();
 
     /// Creates a staging buffer.
@@ -105,7 +116,7 @@ protected:
             HgiBufferDesc const& desc);
 
 private:
-    void allocateDirect(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, void* data);
+    void allocateDirect(const VkBufferCreateInfo& bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, const void* data);
 
     HgiVulkanBuffer() = delete;
     HgiVulkanBuffer& operator=(const HgiVulkanBuffer&) = delete;
@@ -124,9 +135,11 @@ private:
 enum HgiVulkanBufferUsageBits : HgiBits
 {
     HgiBufferUsageAccelerationStructureBuildInputReadOnly = 1 << 4,
-    HgiBufferUsageShaderDeviceAddress = 1 << 5,
-    HgiBufferUsageNoTransfer = 1 << 6,
-    HgiBufferUsageRayTracingExtensions = 1 << 7,
+    HgiBufferUsageAccelerationStructureStorage = 1 << 5,
+    HgiBufferUsageShaderDeviceAddress = 1 << 6,
+    HgiBufferUsageShaderBindingTable = 1 << 7,
+    HgiBufferUsageNoTransfer = 1 << 8,
+    HgiBufferUsageRayTracingExtensions = 1 << 9,
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

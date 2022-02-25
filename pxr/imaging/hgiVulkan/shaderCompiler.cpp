@@ -27,6 +27,7 @@
 #include "pxr/imaging/hgiVulkan/diagnostic.h"
 #include "pxr/imaging/hgiVulkan/shaderCompiler.h"
 #include "pxr/imaging/hgiVulkan/spirv_reflect.h"
+#include "pxr/imaging/hgiVulkan/shaderFunction.h"
 
 #include <shaderc/shaderc.hpp>
 
@@ -52,6 +53,18 @@ _GetShaderStage(HgiShaderStage stage)
             return shaderc_glsl_fragment_shader;
         case HgiShaderStageCompute:
             return shaderc_glsl_compute_shader;
+        case HgiShaderStageRayGen:
+            return shaderc_glsl_raygen_shader;
+        case HgiShaderStageAnyHit:
+            return shaderc_glsl_anyhit_shader;
+        case HgiShaderStageClosestHit:
+            return shaderc_glsl_closesthit_shader;
+        case HgiShaderStageMiss:
+            return shaderc_glsl_miss_shader;
+        case HgiShaderStageIntersection:
+            return shaderc_intersection_shader;
+        case HgiShaderStageCallable:
+            return shaderc_callable_shader;
     }
 
     TF_CODING_ERROR("Unknown stage");
@@ -80,9 +93,16 @@ HgiVulkanCompileGLSL(
     }
 
     shaderc::CompileOptions options;
-    options.SetTargetEnvironment(shaderc_target_env_vulkan,
-                                 shaderc_env_version_vulkan_1_0);
-    options.SetTargetSpirv(shaderc_spirv_version_1_0);
+    if (stage > HgiShaderStageGeometry) {
+        options.SetTargetEnvironment(shaderc_target_env_vulkan,
+            shaderc_env_version_vulkan_1_2);
+        options.SetTargetSpirv(shaderc_spirv_version_1_5);
+    }
+    else {
+        options.SetTargetEnvironment(shaderc_target_env_vulkan,
+            shaderc_env_version_vulkan_1_0);
+        options.SetTargetSpirv(shaderc_spirv_version_1_0);
+    }
 
     shaderc_shader_kind const kind = _GetShaderStage(stage);
 

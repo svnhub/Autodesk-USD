@@ -342,7 +342,15 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
 
     vkCreateRenderPass2KHR = (PFN_vkCreateRenderPass2KHR)
     vkGetDeviceProcAddr(_vkDevice, "vkCreateRenderPass2KHR");
-
+    vkGetBufferDeviceAddressKHR = (PFN_vkGetBufferDeviceAddressKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetBufferDeviceAddressKHR"));
+    vkCreateAccelerationStructureKHR = (PFN_vkCreateAccelerationStructureKHR)(vkGetDeviceProcAddr(_vkDevice, "vkCreateAccelerationStructureKHR"));
+    vkGetAccelerationStructureBuildSizesKHR = (PFN_vkGetAccelerationStructureBuildSizesKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetAccelerationStructureBuildSizesKHR"));
+    vkGetAccelerationStructureDeviceAddressKHR = (PFN_vkGetAccelerationStructureDeviceAddressKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetAccelerationStructureDeviceAddressKHR"));
+    vkCmdBuildAccelerationStructuresKHR = (PFN_vkCmdBuildAccelerationStructuresKHR)(vkGetDeviceProcAddr(_vkDevice, "vkCmdBuildAccelerationStructuresKHR"));
+    vkCreateRayTracingPipelinesKHR = (PFN_vkCreateRayTracingPipelinesKHR)(vkGetDeviceProcAddr(_vkDevice, "vkCreateRayTracingPipelinesKHR"));
+    vkGetRayTracingShaderGroupHandlesKHR = (PFN_vkGetRayTracingShaderGroupHandlesKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetRayTracingShaderGroupHandlesKHR"));
+    vkCmdTraceRaysKHR = (PFN_vkCmdTraceRaysKHR)(vkGetDeviceProcAddr(_vkDevice, "vkCmdTraceRaysKHR"));
+    
     //
     // Memory allocator
     //
@@ -374,6 +382,23 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
     //
 
     _pipelineCache = new HgiVulkanPipelineCache(this);
+
+
+
+    // Get ray tracing pipeline properties, which will be used later on in the sample
+    _rayTracingPipelineProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR;
+    VkPhysicalDeviceProperties2 deviceProperties2{};
+    deviceProperties2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+    deviceProperties2.pNext = &_rayTracingPipelineProperties;
+    vkGetPhysicalDeviceProperties2(_vkPhysicalDevice, &deviceProperties2);
+
+    // Get acceleration structure properties, which will be used later on in the sample
+    accelerationStructureFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR;
+    VkPhysicalDeviceFeatures2 deviceFeatures2{};
+    deviceFeatures2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
+    deviceFeatures2.pNext = &_accelerationStructureFeatures;
+    vkGetPhysicalDeviceFeatures2(_vkPhysicalDevice, &deviceFeatures2);
+
 }
 
 HgiVulkanDevice::~HgiVulkanDevice()
@@ -429,6 +454,15 @@ HgiVulkanDevice::GetPipelineCache() const
 {
     return _pipelineCache;
 }
+
+const VkPhysicalDeviceRayTracingPipelinePropertiesKHR& HgiVulkanDevice::GetRayTracingPipelineProperties() {
+    return _rayTracingPipelineProperties;
+}
+
+const VkPhysicalDeviceAccelerationStructureFeaturesKHR& HgiVulkanDevice::GetAccelerationStructureFeatures() {
+    return _accelerationStructureFeatures;
+}
+
 
 void
 HgiVulkanDevice::WaitForIdle()
