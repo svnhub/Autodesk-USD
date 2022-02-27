@@ -42,14 +42,15 @@ struct HgiAccelerationStructureInstance
     GfMatrix4f  transform;
     uint32_t id = 0;
     uint32_t mask = 0xff;
+    uint32_t groupIndex = 0;
     HgiAccelerationStructureInstanceFlags flags = HgiAccelerationStructureInstanceFlagsDisableFaceCulling;
+    HgiBufferHandle blasBuffer;
 };
 
 struct HgiAccelerationStructureInstanceGeometryDesc
 {
     std::string debugName;
     std::vector<HgiAccelerationStructureInstance> instances;
-    HgiBufferHandle blas;
 };
 
 
