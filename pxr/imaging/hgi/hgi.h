@@ -29,6 +29,7 @@
 #include "pxr/base/tf/type.h"
 
 #include "pxr/imaging/hgi/accelerationStructure.h"
+#include "pxr/imaging/hgi/accelerationStructureCmds.h"
 #include "pxr/imaging/hgi/api.h"
 #include "pxr/imaging/hgi/blitCmds.h"
 #include "pxr/imaging/hgi/buffer.h"
@@ -178,6 +179,9 @@ public:
     /// thread and be submitted on the main thread. See notes above.
     HGI_API
     virtual HgiComputeCmdsUniquePtr CreateComputeCmds() = 0;
+
+    HGI_API
+        virtual HgiAccelerationStructureCmdsUniquePtr CreateAccelerationStructureCmds() { return nullptr;  }
 
     /// Create an acceleration structure in rendering backend.
     /// Thread safety: Creation must happen on main thread. See notes above.

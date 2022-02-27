@@ -33,6 +33,7 @@
 #include "pxr/imaging/hgiVulkan/commandQueue.h"
 #include "pxr/imaging/hgiVulkan/device.h"
 #include "pxr/imaging/hgiVulkan/vulkan.h"
+#include "pxr/imaging/hgiVulkan/accelerationStructureCmds.h"
 
 #include <thread>
 #include <vector>
@@ -68,6 +69,9 @@ public:
 
     HGIVULKAN_API
     HgiComputeCmdsUniquePtr CreateComputeCmds() override;
+
+    HGIVULKAN_API
+        HgiAccelerationStructureCmdsUniquePtr CreateAccelerationStructureCmds() override;
 
     HGIVULKAN_API
     HgiTextureHandle CreateTexture(HgiTextureDesc const & desc) override;

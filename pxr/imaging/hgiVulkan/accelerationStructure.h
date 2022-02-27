@@ -113,8 +113,10 @@ public:
     }
 
     HGIVULKAN_API
-        VkAccelerationStructureBuildSizesInfoKHR& GetBuildSizesInfo() { return _buildSizesInfo; }
-    
+        const VkAccelerationStructureBuildSizesInfoKHR& GetBuildSizesInfo() { return _buildSizesInfo; }
+    HGIVULKAN_API
+        const VkAccelerationStructureBuildGeometryInfoKHR& GetBuildGeometryInfo() { return _buildGeomInfo; }
+
     HGIVULKAN_API
         HgiBufferHandle GetScratchBuffer() {
         return _scratchBuffer;
@@ -123,6 +125,8 @@ public:
         HgiBufferHandle GetAccelerationStructureBuffer() {
         return _accelStructureBuffer;
     }
+
+
 
 protected:
     friend class HgiVulkan;

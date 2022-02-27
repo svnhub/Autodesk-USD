@@ -109,6 +109,13 @@ HgiVulkan::CreateComputeCmds()
     return HgiComputeCmdsUniquePtr(cmds);
 }
 
+HgiAccelerationStructureCmdsUniquePtr
+HgiVulkan::CreateAccelerationStructureCmds()
+{
+    HgiVulkanAccelerationStructureCmds* cmds(new HgiVulkanAccelerationStructureCmds(this));
+    return HgiAccelerationStructureCmdsUniquePtr(cmds);
+}
+
 /* Multi threaded */
 HgiTextureHandle
 HgiVulkan::CreateTexture(HgiTextureDesc const & desc)

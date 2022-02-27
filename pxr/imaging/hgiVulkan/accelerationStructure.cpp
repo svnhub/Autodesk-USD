@@ -164,6 +164,12 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
     scratchBufferDesc.initialData = nullptr;
     scratchBufferDesc.byteSize = _buildSizesInfo.buildScratchSize;
     _scratchBuffer = pHgi->CreateBuffer(scratchBufferDesc);
+    HgiVulkanBuffer* pScratchBufferVk = (HgiVulkanBuffer*)_scratchBuffer.Get();
+
+    _buildGeomInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
+    _buildGeomInfo.dstAccelerationStructure = _accelerationStructure;
+    _buildGeomInfo.scratchData.deviceAddress = pScratchBufferVk->GetDeviceAddress().deviceAddress;
+
    
 
 
