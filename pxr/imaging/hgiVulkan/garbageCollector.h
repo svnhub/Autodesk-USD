@@ -29,6 +29,7 @@
 
 #include "pxr/imaging/hgi/hgi.h"
 #include "pxr/imaging/hgiVulkan/api.h"
+#include "pxr/imaging/hgiVulkan/accelerationStructure.h"
 
 #include <mutex>
 #include <vector>
@@ -53,7 +54,9 @@ using HgiVulkanResourceBindingsVector =
 using HgiVulkanGraphicsPipelineVector =
     std::vector<class HgiVulkanGraphicsPipeline*>;
 using HgiVulkanComputePipelineVector =
-    std::vector<class HgiVulkanComputePipeline*>;
+std::vector<class HgiVulkanComputePipeline*>;
+using HgiVulkanAccelerationStructureVector =
+std::vector<class HgiVulkanAccelerationStructure*>;
 
 
 /// \class HgiVulkanGarbageCollector
@@ -87,7 +90,8 @@ public:
     HgiVulkanResourceBindingsVector* GetResourceBindingsList();
     HgiVulkanGraphicsPipelineVector* GetGraphicsPipelineList();
     HgiVulkanComputePipelineVector* GetComputePipelineList();
-
+    HgiVulkanAccelerationStructureVector* GetAccelerationStructureList();
+    
 private:
     HgiVulkanGarbageCollector & operator =
         (const HgiVulkanGarbageCollector&) = delete;
@@ -113,6 +117,7 @@ private:
     static std::vector<HgiVulkanResourceBindingsVector*> _resourceBindingsList;
     static std::vector<HgiVulkanGraphicsPipelineVector*> _graphicsPipelineList;
     static std::vector<HgiVulkanComputePipelineVector*> _computePipelineList;
+    static std::vector<HgiVulkanAccelerationStructureVector*> _accelerationStructureList;
 
     bool _isDestroying;
 };

@@ -381,6 +381,19 @@ _imageLayoutFormatTable[HgiFormatCount][2] =
     {"HgiFormatPackedInt1010102",  ""},
 };
 
+static const uint32_t
+_AccelerationStructureTypeTable[][2] =
+{
+    {HgiAccelerationStructureTypeTopLevel, VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR},
+    {HgiAccelerationStructureTypeBottomLevel, VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR},
+};
+
+static const uint32_t
+_AccelerationStructureGeometryFlagsTable[][2] =
+{
+    {HgiAccelerationStructureGeometryOpaque, VK_GEOMETRY_OPAQUE_BIT_KHR},
+};
+
 VkFormat
 HgiVulkanConversions::GetFormat(HgiFormat inFormat)
 {
@@ -597,7 +610,6 @@ HgiVulkanConversions::GetPrimitiveType(HgiPrimitiveType pt)
 {
     return VkPrimitiveTopology(_primitiveTypeTable[pt][1]);
 }
-
 std::string
 HgiVulkanConversions::GetImageLayoutFormatQualifier(HgiFormat inFormat)
 {
@@ -610,4 +622,22 @@ HgiVulkanConversions::GetImageLayoutFormatQualifier(HgiFormat inFormat)
     return layoutQualifier;
 }
 
+
+VkAccelerationStructureTypeKHR
+HgiVulkanConversions::GetAccelerationStructureType(HgiAccelerationStructureType type)
+{
+    return VkAccelerationStructureTypeKHR(_AccelerationStructureTypeTable[type][1]);
+}
+
+VkGeometryFlagBitsKHR
+HgiVulkanConversions::GetAccelerationStructureGeometryFlags(HgiAccelerationStructureGeometryFlags flags)
+{
+    VkGeometryFlagBitsKHR vkFlags = (VkGeometryFlagBitsKHR)0;
+    for (const auto& f : _AccelerationStructureGeometryFlagsTable) {
+        if (flags & f[0]) vkFlags = (VkGeometryFlagBitsKHR)(vkFlags|f[1]);
+    }
+
+    return vkFlags;
+
+}
 PXR_NAMESPACE_CLOSE_SCOPE

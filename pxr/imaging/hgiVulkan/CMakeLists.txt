@@ -16,6 +16,7 @@ pxr_library(hgiVulkan
         ${VULKAN_LIBS}
 
     PUBLIC_CLASSES
+        accelerationStructure
         blitCmds
         buffer
         capabilities

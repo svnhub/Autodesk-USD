@@ -144,6 +144,19 @@ public:
     HGIVULKAN_API
     void EndFrame() override;
 
+
+    HGIVULKAN_API
+        HgiAccelerationStructureHandle CreateAccelerationStructure(HgiAccelerationStructureDesc const& desc) override;
+
+    HGIVULKAN_API
+        void DestroyAccelerationStructure(HgiAccelerationStructureHandle* accelStructHandle)  override;
+
+    HGIVULKAN_API
+        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc)  override;
+
+    HGIVULKAN_API
+        virtual void DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* accelStructHandle) override;
+
     //
     // HgiVulkan specific
     //

@@ -55,6 +55,8 @@ std::vector<HgiVulkanGraphicsPipelineVector*>
     HgiVulkanGarbageCollector::_graphicsPipelineList;
 std::vector<HgiVulkanComputePipelineVector*> 
     HgiVulkanGarbageCollector::_computePipelineList;
+std::vector<HgiVulkanAccelerationStructureVector*>
+HgiVulkanGarbageCollector::_accelerationStructureList;
 
 
 template<class T>

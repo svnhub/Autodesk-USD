@@ -39,6 +39,7 @@
 #include "pxr/imaging/hgiVulkan/shaderFunction.h"
 #include "pxr/imaging/hgiVulkan/shaderProgram.h"
 #include "pxr/imaging/hgiVulkan/texture.h"
+#include "pxr/imaging/hgiVulkan/accelerationStructure.h"
 
 #include "pxr/base/trace/trace.h"
 
@@ -367,6 +368,26 @@ HgiVulkan::_EndFrameSync()
     // Perform garbage collection for each device.
     _garbageCollector->PerformGarbageCollection(device);
 }
+
+HgiAccelerationStructureHandle HgiVulkan::CreateAccelerationStructure(HgiAccelerationStructureDesc const& desc) {
+    return HgiAccelerationStructureHandle(
+        new HgiVulkanAccelerationStructure(GetPrimaryDevice(), desc),
+        GetUniqueId());
+}
+
+void HgiVulkan::DestroyAccelerationStructure(HgiAccelerationStructureHandle* accelStructHandle) {
+}
+
+HgiAccelerationStructureGeometryHandle HgiVulkan::CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) {
+    return HgiAccelerationStructureGeometryHandle(
+        new HgiVulkanAccelerationStructureGeometry(GetPrimaryDevice(), desc),
+        GetUniqueId());
+}
+
+void HgiVulkan::DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* accelStructHandle) {
+    delete accelStructHandle->Get();
+}
+
 
 
 PXR_NAMESPACE_CLOSE_SCOPE

@@ -28,6 +28,7 @@
 #include "pxr/base/tf/token.h"
 #include "pxr/base/tf/type.h"
 
+#include "pxr/imaging/hgi/accelerationStructure.h"
 #include "pxr/imaging/hgi/api.h"
 #include "pxr/imaging/hgi/blitCmds.h"
 #include "pxr/imaging/hgi/buffer.h"
@@ -177,6 +178,26 @@ public:
     /// thread and be submitted on the main thread. See notes above.
     HGI_API
     virtual HgiComputeCmdsUniquePtr CreateComputeCmds() = 0;
+
+    /// Create an acceleration structure in rendering backend.
+    /// Thread safety: Creation must happen on main thread. See notes above.
+    HGI_API
+        virtual HgiAccelerationStructureHandle CreateAccelerationStructure(HgiAccelerationStructureDesc const& desc) { return HgiAccelerationStructureHandle(); }
+
+    /// Destroyan acceleration structure in rendering backend.
+    /// Thread safety: Destruction must happen on main thread. See notes above.
+    HGI_API
+        virtual void DestroyAccelerationStructure(HgiAccelerationStructureHandle* accelStructHandle) {};
+
+    /// Create an acceleration structure in rendering backend.
+/// Thread safety: Creation must happen on main thread. See notes above.
+    HGI_API
+        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) { return HgiAccelerationStructureGeometryHandle(); }
+
+    /// Destroyan acceleration structure in rendering backend.
+    /// Thread safety: Destruction must happen on main thread. See notes above.
+    HGI_API
+        virtual void DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* accelStructHandle) {};
 
     /// Create a texture in rendering backend.
     /// Thread safety: Creation must happen on main thread. See notes above.

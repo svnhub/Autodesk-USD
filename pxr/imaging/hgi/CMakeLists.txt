@@ -9,6 +9,7 @@ pxr_library(hgi
 
     PUBLIC_CLASSES
         attachmentDesc
+        accelerationStructure
         blitCmds
         buffer
         capabilities

@@ -75,10 +75,10 @@ using HgiBits = uint32_t;
 ///
 enum HgiDeviceCapabilitiesBits : HgiBits
 {
-    HgiDeviceCapabilitiesBitsPresentation            = 1 << 0,
-    HgiDeviceCapabilitiesBitsBindlessBuffers         = 1 << 1,
-    HgiDeviceCapabilitiesBitsConcurrentDispatch      = 1 << 2,
-    HgiDeviceCapabilitiesBitsUnifiedMemory           = 1 << 3,
+    HgiDeviceCapabilitiesBitsPresentation       = 1 << 0,
+    HgiDeviceCapabilitiesBitsBindlessBuffers    = 1 << 1,
+    HgiDeviceCapabilitiesBitsConcurrentDispatch = 1 << 2,
+    HgiDeviceCapabilitiesBitsUnifiedMemory      = 1 << 3,
     HgiDeviceCapabilitiesBitsBuiltinBarycentrics     = 1 << 4,
     HgiDeviceCapabilitiesBitsShaderDrawParameters    = 1 << 5,
     HgiDeviceCapabilitiesBitsMultiDrawIndirect       = 1 << 6,
@@ -351,12 +351,12 @@ using HgiBufferUsage = HgiBits;
 ///
 enum HgiShaderStageBits : HgiBits
 {
-    HgiShaderStageVertex                 = 1 << 0,
-    HgiShaderStageFragment               = 1 << 1,
-    HgiShaderStageCompute                = 1 << 2,
-    HgiShaderStageTessellationControl    = 1 << 3,
-    HgiShaderStageTessellationEval       = 1 << 4,
-    HgiShaderStageGeometry               = 1 << 5,
+    HgiShaderStageVertex               = 1 << 0,
+    HgiShaderStageFragment             = 1 << 1,
+    HgiShaderStageCompute              = 1 << 2,
+    HgiShaderStageTessellationControl  = 1 << 3,
+    HgiShaderStageTessellationEval     = 1 << 4,
+    HgiShaderStageGeometry             = 1 << 5,
     HgiShaderStagePostTessellationControl = 1 << 6,
     HgiShaderStagePostTessellationVertex = 1 << 7,
     HgiShaderStageCustomBitsBegin        = 1 << 8,
@@ -755,6 +755,20 @@ enum HgiShaderTextureType
     HgiShaderTextureTypeTexture = 0,
     HgiShaderTextureTypeShadowTexture,
     HgiShaderTextureTypeArrayTexture
+};
+
+enum HgiAccelerationStructureGeometryFlags {
+    HgiAccelerationStructureGeometryOpaque = 1 << 0,
+};
+
+enum HgiAccelerationStructureType {
+    HgiAccelerationStructureTypeTopLevel,
+    HgiAccelerationStructureTypeBottomLevel,
+};
+
+enum HgiIndexType {
+    HgiIndexTypeUInt32,
+    HgiIndexTypeUInt16,
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE
