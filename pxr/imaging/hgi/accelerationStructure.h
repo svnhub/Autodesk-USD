@@ -1,3 +1,4 @@
+#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgi/accelerationStructure.h"
 //
 // Copyright 2020 Pixar
 //
@@ -66,7 +67,7 @@ struct HgiAccelerationStructureTriangleGeometryDesc
     std::string debugName;
     HgiFormat vertexFormat = HgiFormatFloat32Vec3;
     HgiBufferHandle vertexData;
-    size_t vertexStride=0;
+    size_t vertexStride = 0;
     uint32_t maxVertex = 0;
     HgiIndexType indexType = HgiIndexTypeUInt32;
     HgiBufferHandle indexData;
@@ -122,7 +123,7 @@ struct HgiAccelerationStructureDesc
     HgiAccelerationStructureDesc()
     {}
 
-    std::string debugName;    
+    std::string debugName;
     HgiAccelerationStructureGeometryHandleVector geometry;
     HgiAccelerationStructureType type;
 
@@ -149,11 +150,11 @@ class HgiAccelerationStructure
 {
 public:
     HGI_API
-    virtual ~HgiAccelerationStructure();
+        virtual ~HgiAccelerationStructure();
 
     /// The descriptor describes the object.
     HGI_API
-    HgiAccelerationStructureDesc const& GetDescriptor() const;
+        HgiAccelerationStructureDesc const& GetDescriptor() const;
 
     /// This function returns the handle to the Hgi backend's gpu resource, cast
     /// to a uint64_t. Clients should avoid using this function and instead
@@ -166,17 +167,17 @@ public:
     /// In Metal this returns the id<MTLAccelerationStructureState> as uint64_t.
     /// In Vulkan this returns the VkAccelerationStructure as uint64_t.
     HGI_API
-    virtual uint64_t GetRawResource() const = 0;
+        virtual uint64_t GetRawResource() const = 0;
 
 protected:
     HGI_API
-    HgiAccelerationStructure(HgiAccelerationStructureDesc const& desc);
+        HgiAccelerationStructure(HgiAccelerationStructureDesc const& desc);
 
     HgiAccelerationStructureDesc _descriptor;
 
 private:
     HgiAccelerationStructure() = delete;
-    HgiAccelerationStructure & operator=(const HgiAccelerationStructure&) = delete;
+    HgiAccelerationStructure& operator=(const HgiAccelerationStructure&) = delete;
     HgiAccelerationStructure(const HgiAccelerationStructure&) = delete;
 
 

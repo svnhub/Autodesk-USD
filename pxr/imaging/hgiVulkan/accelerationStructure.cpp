@@ -80,7 +80,7 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(H
         }
         instances[i].instanceCustomIndex = desc.instances[i].id;
         instances[i].mask = desc.instances[i].mask;
-        instances[i].instanceShaderBindingTableRecordOffset = instances[i].groupIndex;
+        instances[i].instanceShaderBindingTableRecordOffset = desc.instances[i].groupIndex;
         instances[i].flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
         instances[i].accelerationStructureReference = GetBufferAddress(desc.instances[i].blasBuffer).deviceAddress;
 
