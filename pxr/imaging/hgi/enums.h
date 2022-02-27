@@ -1,3 +1,4 @@
+#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgi/enums.h"
 //
 // Copyright 2019 Pixar
 //
@@ -268,7 +269,7 @@ enum HgiAttachmentLoadOp
     HgiAttachmentLoadOpDontCare = 0,
     HgiAttachmentLoadOpClear,
     HgiAttachmentLoadOpLoad,
-    
+
     HgiAttachmentLoadOpCount
 };
 
@@ -287,7 +288,7 @@ enum HgiAttachmentStoreOp
 {
     HgiAttachmentStoreOpDontCare = 0,
     HgiAttachmentStoreOpStore,
-    
+
     HgiAttachmentStoreOpCount
 };
 
@@ -761,6 +762,11 @@ enum HgiAccelerationStructureGeometryFlags {
     HgiAccelerationStructureGeometryOpaque = 1 << 0,
 };
 
+enum HgiAccelerationStructureInstanceFlags {
+    HgiAccelerationStructureInstanceFlagsDisableFaceCulling = 1 << 0,
+    HgiAccelerationStructureInstanceFlagsFlipFacing = 1 << 1,
+};
+
 enum HgiAccelerationStructureType {
     HgiAccelerationStructureTypeTopLevel,
     HgiAccelerationStructureTypeBottomLevel,
@@ -769,6 +775,10 @@ enum HgiAccelerationStructureType {
 enum HgiIndexType {
     HgiIndexTypeUInt32,
     HgiIndexTypeUInt16,
+};
+
+enum HgiAccelerationStructureBuildFlags {
+    HgiAccelerationStructureBuildFlagsPreferFastTrace,
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

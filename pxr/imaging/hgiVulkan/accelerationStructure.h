@@ -25,6 +25,7 @@
 #define PXR_IMAGING_HGIVULKAN_HGI_ACCELERATION_STRUCTURE_H
 
 #include "pxr/pxr.h"
+#include "pxr/imaging/hgi/hgi.h"
 #include "pxr/imaging/hgiVulkan/api.h"
 #include "pxr/imaging/hgiVulkan/vulkan.h"
 #include "pxr/imaging/hgiVulkan/device.h"
@@ -52,19 +53,27 @@ public:
         return &_accelerationStructureGeometry;
     }
 
+    uint32_t GetPrimitiveCount() { return _primitiveCount;  }
+
 protected:
     friend class HgiVulkan;
 
     HgiVulkanAccelerationStructureGeometry(
+        Hgi* pHgi,
         HgiVulkanDevice* device,
         HgiAccelerationStructureTriangleGeometryDesc const& desc);
+    HgiVulkanAccelerationStructureGeometry(Hgi* pHgi,
+            HgiVulkanDevice* device, HgiAccelerationStructureInstanceGeometryDesc const& desc);
+
+
 private:
     HgiVulkanAccelerationStructureGeometry() = delete;
     HgiVulkanAccelerationStructureGeometry& operator=(const HgiVulkanAccelerationStructureGeometry&) = delete;
     HgiVulkanAccelerationStructureGeometry(const HgiVulkanAccelerationStructureGeometry&) = delete;
 
     VkAccelerationStructureGeometryKHR _accelerationStructureGeometry;
-
+    HgiBufferHandle _instancesBuffer;
+    uint32_t _primitiveCount;
 };
 
 
@@ -103,12 +112,24 @@ public:
         return _inflightBits;
     }
 
+    HGIVULKAN_API
+        VkAccelerationStructureBuildSizesInfoKHR& GetBuildSizesInfo() { return _buildSizesInfo; }
+    
+    HGIVULKAN_API
+        HgiBufferHandle GetScratchBuffer() {
+        return _scratchBuffer;
+    }
+    HGIVULKAN_API
+        HgiBufferHandle GetAccelerationStructureBuffer() {
+        return _accelStructureBuffer;
+    }
 
 protected:
     friend class HgiVulkan;
 
     HGIVULKAN_API
         HgiVulkanAccelerationStructure(
+            Hgi* pHgi,
             HgiVulkanDevice* device,
             HgiAccelerationStructureDesc const& desc);
 
@@ -120,7 +141,13 @@ private:
     HgiVulkanDevice* _device;
     uint64_t _inflightBits;
     VkAccelerationStructureKHR _accelerationStructure;
+    VkAccelerationStructureBuildGeometryInfoKHR _buildGeomInfo;
+    VkAccelerationStructureBuildSizesInfoKHR _buildSizesInfo;
+    std::vector<VkAccelerationStructureGeometryKHR> _vkGeom;
+    std::vector<uint32_t> _primitiveCounts;
 
+    HgiBufferHandle _accelStructureBuffer;
+    HgiBufferHandle _scratchBuffer;
 };
 
 

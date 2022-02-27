@@ -24,6 +24,7 @@
 #include "pxr/imaging/hgiVulkan/accelerationStructure.h"
 #include "pxr/imaging/hgiVulkan/conversions.h"
 #include "pxr/imaging/hgiVulkan/buffer.h"
+#include "pxr/imaging/hgi/hgi.h"
 #include "pxr/imaging/hgi/enums.h"
 #include "pxr/imaging/hgiVulkan/device.h"
 
@@ -43,12 +44,15 @@ VkDeviceOrHostAddressConstKHR GetBufferAddress(HgiBufferHandle buffer) {
 }
 
 HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(
+    Hgi *pHgi,
     HgiVulkanDevice* device,
     HgiAccelerationStructureTriangleGeometryDesc const& desc) : HgiAccelerationStructureGeometry(desc) {
+    _accelerationStructureGeometry = {};
     _accelerationStructureGeometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
-    _accelerationStructureGeometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+    _accelerationStructureGeometry.flags = HgiVulkanConversions::GetAccelerationStructureGeometryFlags(desc.flags);
     _accelerationStructureGeometry.pNext = nullptr;
     _accelerationStructureGeometry.geometryType = VK_GEOMETRY_TYPE_TRIANGLES_KHR;
+    _accelerationStructureGeometry.geometry.triangles.pNext = nullptr;
     _accelerationStructureGeometry.geometry.triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
     _accelerationStructureGeometry.geometry.triangles.vertexFormat = HgiVulkanConversions::GetFormat(desc.vertexFormat);;
     _accelerationStructureGeometry.geometry.triangles.vertexData = GetBufferAddress(desc.vertexData);
@@ -58,6 +62,46 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(
     _accelerationStructureGeometry.geometry.triangles.indexData = GetBufferAddress(desc.indexData);;
     _accelerationStructureGeometry.geometry.triangles.transformData = GetBufferAddress(desc.transformData);
 
+    _primitiveCount = desc.count;
+}
+
+
+HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(Hgi* pHgi,
+    HgiVulkanDevice* device, HgiAccelerationStructureInstanceGeometryDesc const& desc) : HgiAccelerationStructureGeometry(desc) {
+
+    std::vector<VkAccelerationStructureInstanceKHR> instances; 
+    instances.resize(desc.instances.size());
+    for(int i=0;i< desc.instances.size();i++)
+    {
+        for (int j = 0; j < 3; j++) {
+            for (int k = 0; k < 4; k++) {
+                instances[i].transform.matrix[j][k] = desc.instances[i].transform[j][k];
+            }
+        }
+        instances[i].instanceCustomIndex = desc.instances[i].id;
+        instances[i].mask = desc.instances[i].mask;
+        instances[i].instanceShaderBindingTableRecordOffset = i;
+        instances[i].flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
+        instances[i].accelerationStructureReference = GetBufferAddress(desc.blas).deviceAddress;
+
+    }
+
+    HgiBufferDesc instancesBufferDesc;
+    instancesBufferDesc.debugName = desc.debugName + "InstancesBuffer";
+    instancesBufferDesc.usage = HgiVulkanBufferUsageBits::HgiBufferUsageAccelerationStructureBuildInputReadOnly | HgiVulkanBufferUsageBits::HgiBufferUsageRayTracingExtensions | HgiVulkanBufferUsageBits::HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    instancesBufferDesc.initialData = &instances[0];
+    instancesBufferDesc.byteSize = instances.size()*sizeof(instances[0]);
+    _instancesBuffer = pHgi->CreateBuffer(instancesBufferDesc);
+
+    _accelerationStructureGeometry = {};
+    _accelerationStructureGeometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
+    _accelerationStructureGeometry.geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR;
+    _accelerationStructureGeometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
+    _accelerationStructureGeometry.geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
+    _accelerationStructureGeometry.geometry.instances.arrayOfPointers = VK_FALSE;
+    _accelerationStructureGeometry.geometry.instances.data = GetBufferAddress(_instancesBuffer);
+
+    _primitiveCount = instances.size();
 }
 
 
@@ -69,8 +113,59 @@ HgiVulkanAccelerationStructure::GetRawResource() const
 
 
 HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
+    Hgi* pHgi,
     HgiVulkanDevice* device,
-    HgiAccelerationStructureDesc const& desc): HgiAccelerationStructure(desc) {
+    HgiAccelerationStructureDesc const& desc): HgiAccelerationStructure(desc), _device(device) {
+    _vkGeom.clear();
+    _primitiveCounts.clear();
+    for (int i = 0; i < desc.geometry.size(); i++) {
+        HgiVulkanAccelerationStructureGeometry* pGeom = (HgiVulkanAccelerationStructureGeometry*)desc.geometry[i].Get();
+        _vkGeom.push_back(*pGeom->GetVulkanGeometry());
+        _primitiveCounts.push_back(pGeom->GetPrimitiveCount());
+    }
+
+    VkAccelerationStructureTypeKHR type = HgiVulkanConversions::GetAccelerationStructureType(desc.type);;
+
+    _buildGeomInfo = {};
+    _buildGeomInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR;
+    _buildGeomInfo.type = type;
+    _buildGeomInfo.flags = VK_BUILD_ACCELERATION_STRUCTURE_PREFER_FAST_TRACE_BIT_KHR;
+    _buildGeomInfo.geometryCount = _vkGeom.size();
+    _buildGeomInfo.pGeometries = &_vkGeom[0];
+
+    _buildSizesInfo = {};
+    _buildSizesInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR;
+    _device->vkGetAccelerationStructureBuildSizesKHR(
+        _device->GetVulkanDevice(),
+        VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR,
+        &_buildGeomInfo,
+        &_primitiveCounts[0],
+        &_buildSizesInfo);
+
+    HgiBufferDesc accelBufferDesc;
+    accelBufferDesc.debugName = _descriptor.debugName + "AccelerationStructureBuffer";
+    accelBufferDesc.usage = HgiVulkanBufferUsageBits::HgiBufferUsageAccelerationStructureStorage | HgiVulkanBufferUsageBits::HgiBufferUsageRayTracingExtensions | HgiVulkanBufferUsageBits::HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    accelBufferDesc.initialData = nullptr;
+    accelBufferDesc.byteSize = _buildSizesInfo.accelerationStructureSize;
+    _accelStructureBuffer = pHgi->CreateBuffer(accelBufferDesc);
+
+    HgiVulkanBuffer* pAccelBufferVk = (HgiVulkanBuffer*)_accelStructureBuffer.Get();
+
+    VkAccelerationStructureCreateInfoKHR accelerationStructureCreateInfo{};
+    accelerationStructureCreateInfo.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR;
+    accelerationStructureCreateInfo.buffer = pAccelBufferVk->GetVulkanBuffer();
+    accelerationStructureCreateInfo.size = _buildSizesInfo.accelerationStructureSize;
+    accelerationStructureCreateInfo.type = type;
+    _device->vkCreateAccelerationStructureKHR(_device->GetVulkanDevice(), &accelerationStructureCreateInfo, nullptr, &_accelerationStructure);
+
+    HgiBufferDesc scratchBufferDesc;
+    scratchBufferDesc.debugName = _descriptor.debugName + "ScratchBuffer";
+    scratchBufferDesc.usage = HgiBufferUsageStorage | HgiVulkanBufferUsageBits::HgiBufferUsageRayTracingExtensions | HgiVulkanBufferUsageBits::HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    scratchBufferDesc.initialData = nullptr;
+    scratchBufferDesc.byteSize = _buildSizesInfo.buildScratchSize;
+    _scratchBuffer = pHgi->CreateBuffer(scratchBufferDesc);
+   
+
 
 }
 

@@ -155,6 +155,9 @@ public:
         virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc)  override;
 
     HGIVULKAN_API
+        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& desc)  override;
+
+    HGIVULKAN_API
         virtual void DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* accelStructHandle) override;
 
     //

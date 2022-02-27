@@ -194,6 +194,12 @@ public:
     HGI_API
         virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) { return HgiAccelerationStructureGeometryHandle(); }
 
+
+    /// Create an acceleration structure in rendering backend.
+/// Thread safety: Creation must happen on main thread. See notes above.
+    HGI_API
+        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& desc) { return HgiAccelerationStructureGeometryHandle(); }
+
     /// Destroyan acceleration structure in rendering backend.
     /// Thread safety: Destruction must happen on main thread. See notes above.
     HGI_API

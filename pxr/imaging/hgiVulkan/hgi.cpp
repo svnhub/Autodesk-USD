@@ -371,7 +371,7 @@ HgiVulkan::_EndFrameSync()
 
 HgiAccelerationStructureHandle HgiVulkan::CreateAccelerationStructure(HgiAccelerationStructureDesc const& desc) {
     return HgiAccelerationStructureHandle(
-        new HgiVulkanAccelerationStructure(GetPrimaryDevice(), desc),
+        new HgiVulkanAccelerationStructure(this, GetPrimaryDevice(), desc),
         GetUniqueId());
 }
 
@@ -380,7 +380,13 @@ void HgiVulkan::DestroyAccelerationStructure(HgiAccelerationStructureHandle* acc
 
 HgiAccelerationStructureGeometryHandle HgiVulkan::CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) {
     return HgiAccelerationStructureGeometryHandle(
-        new HgiVulkanAccelerationStructureGeometry(GetPrimaryDevice(), desc),
+        new HgiVulkanAccelerationStructureGeometry(this, GetPrimaryDevice(), desc),
+        GetUniqueId());
+}
+
+HgiAccelerationStructureGeometryHandle HgiVulkan::CreateAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& desc) {
+    return HgiAccelerationStructureGeometryHandle(
+        new HgiVulkanAccelerationStructureGeometry(this, GetPrimaryDevice(), desc),
         GetUniqueId());
 }
 

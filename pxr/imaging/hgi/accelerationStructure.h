@@ -30,13 +30,27 @@
 #include "pxr/imaging/hgi/handle.h"
 #include "pxr/imaging/hgi/types.h"
 #include "pxr/imaging/hgi/buffer.h"
+#include "pxr/base/gf/matrix4f.h"
 
 #include <string>
 #include <vector>
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+struct HgiAccelerationStructureInstance
+{
+    GfMatrix4f  transform;
+    uint32_t id = 0;
+    uint32_t mask = 0xff;
+    HgiAccelerationStructureInstanceFlags flags = HgiAccelerationStructureInstanceFlagsDisableFaceCulling;
+};
 
+struct HgiAccelerationStructureInstanceGeometryDesc
+{
+    std::string debugName;
+    std::vector<HgiAccelerationStructureInstance> instances;
+    HgiBufferHandle blas;
+};
 
 
 /// \struct HgiAccelerationStructureGeometryDesc
@@ -57,6 +71,7 @@ struct HgiAccelerationStructureTriangleGeometryDesc
     HgiBufferHandle indexData;
     HgiBufferHandle transformData;
     HgiAccelerationStructureGeometryFlags flags = HgiAccelerationStructureGeometryOpaque;
+    uint32_t count;
 };
 
 HGI_API
@@ -85,6 +100,8 @@ public:
 protected:
     HGI_API
         HgiAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) {}
+    HGI_API
+        HgiAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& desc) {}
 
 private:
     HgiAccelerationStructureGeometry() = delete;
@@ -107,6 +124,7 @@ struct HgiAccelerationStructureDesc
     std::string debugName;    
     HgiAccelerationStructureGeometryHandleVector geometry;
     HgiAccelerationStructureType type;
+
 };
 
 HGI_API
