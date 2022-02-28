@@ -36,6 +36,7 @@ pxr_library(hgiVulkan
         pipelineCache
         resourceBindings
         rayTracingPipeline
+        rayTracingCmds
         sampler
         shaderCompiler
         shaderFunction

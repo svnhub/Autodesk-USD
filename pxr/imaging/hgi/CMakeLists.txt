@@ -24,6 +24,7 @@ pxr_library(hgi
         hgi
         resourceBindings
         rayTracingPipeline
+        rayTracingCmds
         sampler
         shaderFunction
         shaderFunctionDesc

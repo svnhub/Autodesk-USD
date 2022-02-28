@@ -116,6 +116,13 @@ HgiVulkan::CreateAccelerationStructureCmds()
     return HgiAccelerationStructureCmdsUniquePtr(cmds);
 }
 
+HgiRayTracingCmdsUniquePtr
+HgiVulkan::CreateRayTracingCmds()
+{
+    HgiVulkanRayTracingCmds* cmds(new HgiVulkanRayTracingCmds(this));
+    return HgiRayTracingCmdsUniquePtr(cmds);
+}
+
 /* Multi threaded */
 HgiTextureHandle
 HgiVulkan::CreateTexture(HgiTextureDesc const & desc)

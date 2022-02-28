@@ -35,6 +35,7 @@
 #include "pxr/imaging/hgiVulkan/vulkan.h"
 #include "pxr/imaging/hgiVulkan/accelerationStructureCmds.h"
 #include "pxr/imaging/hgiVulkan/rayTracingPipeline.h"
+#include "pxr/imaging/hgiVulkan/rayTracingCmds.h"
 
 #include <thread>
 #include <vector>
@@ -73,6 +74,9 @@ public:
 
     HGIVULKAN_API
         HgiAccelerationStructureCmdsUniquePtr CreateAccelerationStructureCmds() override;
+
+    HGIVULKAN_API
+        HgiRayTracingCmdsUniquePtr CreateRayTracingCmds() override;
 
     HGIVULKAN_API
     HgiTextureHandle CreateTexture(HgiTextureDesc const & desc) override;

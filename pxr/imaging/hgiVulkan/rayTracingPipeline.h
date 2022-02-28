@@ -43,6 +43,7 @@ struct HgiVulkanRayTracingShaderBindingTable {
     HgiBufferHandle raygenShaderBindingTable;
     HgiBufferHandle missShaderBindingTable;
     HgiBufferHandle hitShaderBindingTable;
+    size_t handleSizeAligned;
 };
 
 /// \class HgiVulkanRayTracingPipeline
@@ -53,11 +54,11 @@ class HgiVulkanRayTracingPipeline final : public HgiRayTracingPipeline
 {
 public:
     HGIVULKAN_API
-    ~HgiVulkanRayTracingPipeline() override;
+        ~HgiVulkanRayTracingPipeline() override;
 
     /// Apply pipeline state
     HGIVULKAN_API
-    void BindPipeline(VkCommandBuffer cb);
+        void BindPipeline(VkCommandBuffer cb);
 
     /// Returns the vulkan pipeline layout
     HGIVULKAN_API
@@ -74,35 +75,40 @@ public:
     }
 
     HGIVULKAN_API
-        void BuildShaderBindingTable(HgiVulkanRayTracingShaderBindingTable* pTableOut) const;
+        const HgiVulkanRayTracingShaderBindingTable& GetShaderBindingTable() const {
+        return _shaderBindingTable;
+    }
 
     /// Returns the device used to create this object.
     HGIVULKAN_API
-    HgiVulkanDevice* GetDevice() const;
+        HgiVulkanDevice* GetDevice() const;
 
     /// Returns the (writable) inflight bits of when this object was trashed.
     HGIVULKAN_API
-    uint64_t & GetInflightBits();
+        uint64_t& GetInflightBits();
 
 protected:
     friend class HgiVulkan;
 
     HGIVULKAN_API
-    HgiVulkanRayTracingPipeline(
-        Hgi* pHgi,
-        HgiVulkanDevice* device,
-        HgiRayTracingPipelineDesc const& desc);
+        HgiVulkanRayTracingPipeline(
+            Hgi* pHgi,
+            HgiVulkanDevice* device,
+            HgiRayTracingPipelineDesc const& desc);
 
 private:
     HgiVulkanRayTracingPipeline() = delete;
-    HgiVulkanRayTracingPipeline & operator=(const HgiVulkanRayTracingPipeline&) = delete;
+    HgiVulkanRayTracingPipeline& operator=(const HgiVulkanRayTracingPipeline&) = delete;
     HgiVulkanRayTracingPipeline(const HgiVulkanRayTracingPipeline&) = delete;
+
+    void BuildShaderBindingTable();
 
     HgiVulkanDevice* _device;
     uint64_t _inflightBits;
     VkPipeline _vkPipeline;
     VkPipelineLayout _vkPipelineLayout;
     VkDescriptorSetLayoutVector _vkDescriptorSetLayouts;
+    HgiVulkanRayTracingShaderBindingTable _shaderBindingTable;
 
     Hgi* _pHgi;
 };

@@ -38,6 +38,7 @@
 #include "pxr/imaging/hgi/graphicsCmdsDesc.h"
 #include "pxr/imaging/hgi/graphicsPipeline.h"
 #include "pxr/imaging/hgi/resourceBindings.h"
+#include "pxr/imaging/hgi/rayTracingCmds.h"
 #include "pxr/imaging/hgi/rayTracingPipeline.h"
 #include "pxr/imaging/hgi/sampler.h"
 #include "pxr/imaging/hgi/shaderFunction.h"
@@ -182,7 +183,10 @@ public:
     virtual HgiComputeCmdsUniquePtr CreateComputeCmds() = 0;
 
     HGI_API
-        virtual HgiAccelerationStructureCmdsUniquePtr CreateAccelerationStructureCmds() { return nullptr;  }
+        virtual HgiAccelerationStructureCmdsUniquePtr CreateAccelerationStructureCmds() { return nullptr; }
+
+    HGI_API
+        virtual HgiRayTracingCmdsUniquePtr CreateRayTracingCmds() { return nullptr; }
 
     /// Create an acceleration structure in rendering backend.
     /// Thread safety: Creation must happen on main thread. See notes above.
