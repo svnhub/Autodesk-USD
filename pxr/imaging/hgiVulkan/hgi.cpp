@@ -270,7 +270,7 @@ HgiRayTracingPipelineHandle
 HgiVulkan::CreateRayTracingPipeline(HgiRayTracingPipelineDesc const& desc)
 {
     return HgiRayTracingPipelineHandle(
-        new HgiVulkanRayTracingPipeline(GetPrimaryDevice(), desc),
+        new HgiVulkanRayTracingPipeline(this, GetPrimaryDevice(), desc),
         GetUniqueId());
 }
 

@@ -38,6 +38,13 @@ class HgiVulkanDevice;
 using VkDescriptorSetLayoutVector = std::vector<VkDescriptorSetLayout>;
 
 
+
+struct HgiVulkanRayTracingShaderBindingTable {
+    HgiBufferHandle raygenShaderBindingTable;
+    HgiBufferHandle missShaderBindingTable;
+    HgiBufferHandle hitShaderBindingTable;
+};
+
 /// \class HgiVulkanRayTracingPipeline
 ///
 /// Vulkan implementation of HgiRayTracingPipeline.
@@ -66,6 +73,9 @@ public:
         return _vkDescriptorSetLayouts;
     }
 
+    HGIVULKAN_API
+        void BuildShaderBindingTable(HgiVulkanRayTracingShaderBindingTable* pTableOut) const;
+
     /// Returns the device used to create this object.
     HGIVULKAN_API
     HgiVulkanDevice* GetDevice() const;
@@ -79,6 +89,7 @@ protected:
 
     HGIVULKAN_API
     HgiVulkanRayTracingPipeline(
+        Hgi* pHgi,
         HgiVulkanDevice* device,
         HgiRayTracingPipelineDesc const& desc);
 
@@ -92,6 +103,8 @@ private:
     VkPipeline _vkPipeline;
     VkPipelineLayout _vkPipelineLayout;
     VkDescriptorSetLayoutVector _vkDescriptorSetLayouts;
+
+    Hgi* _pHgi;
 };
 
 
