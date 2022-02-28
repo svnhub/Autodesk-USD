@@ -266,6 +266,20 @@ HgiVulkan::DestroyComputePipeline(HgiComputePipelineHandle* pipeHandle)
     TrashObject(pipeHandle, GetGarbageCollector()->GetComputePipelineList());
 }
 
+HgiRayTracingPipelineHandle
+HgiVulkan::CreateRayTracingPipeline(HgiRayTracingPipelineDesc const& desc)
+{
+    return HgiRayTracingPipelineHandle(
+        new HgiVulkanRayTracingPipeline(GetPrimaryDevice(), desc),
+        GetUniqueId());
+}
+
+void
+HgiVulkan::DestroyRayTracingPipeline(HgiRayTracingPipelineHandle* pipeHandle)
+{
+    TrashObject(pipeHandle, GetGarbageCollector()->GetRayTracingPipelineList());
+}
+
 /* Multi threaded */
 TfToken const&
 HgiVulkan::GetAPIName() const {

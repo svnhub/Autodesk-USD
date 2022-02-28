@@ -55,6 +55,8 @@ std::vector<HgiVulkanGraphicsPipelineVector*>
     HgiVulkanGarbageCollector::_graphicsPipelineList;
 std::vector<HgiVulkanComputePipelineVector*> 
     HgiVulkanGarbageCollector::_computePipelineList;
+std::vector<HgiVulkanRayTracingPipelineVector*>
+    HgiVulkanGarbageCollector::_rayTracingPipelineList;
 std::vector<HgiVulkanAccelerationStructureVector*>
 HgiVulkanGarbageCollector::_accelerationStructureList;
 
@@ -151,6 +153,13 @@ HgiVulkanGarbageCollector::GetComputePipelineList()
     return _GetThreadLocalStorageList(&_computePipelineList);
 }
 
+/* Multi threaded */
+HgiVulkanRayTracingPipelineVector*
+HgiVulkanGarbageCollector::GetRayTracingPipelineList()
+{
+    return _GetThreadLocalStorageList(&_rayTracingPipelineList);
+}
+
 /* Single threaded */
 void
 HgiVulkanGarbageCollector::PerformGarbageCollection(HgiVulkanDevice* device)
@@ -195,6 +204,8 @@ HgiVulkanGarbageCollector::PerformGarbageCollection(HgiVulkanDevice* device)
     _EmptyTrash(&_resourceBindingsList, vkDevice, queueBits);
     _EmptyTrash(&_graphicsPipelineList, vkDevice, queueBits);
     _EmptyTrash(&_computePipelineList, vkDevice, queueBits);
+    _EmptyTrash(&_accelerationStructureList, vkDevice, queueBits);
+    _EmptyTrash(&_rayTracingPipelineList, vkDevice, queueBits);
 
     _isDestroying = false;
 }

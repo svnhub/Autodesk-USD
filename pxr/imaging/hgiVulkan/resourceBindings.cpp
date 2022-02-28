@@ -243,7 +243,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
         {HgiBindResourceTypeStorageBuffer,
             limits.maxPerStageDescriptorStorageBuffers}
     };
-    static_assert(HgiBindResourceTypeCount==6, "");
+    static_assert(HgiBindResourceTypeCount==7, "");
 
     //
     // Buffers

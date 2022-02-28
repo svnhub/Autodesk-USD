@@ -24,6 +24,7 @@
 #include "pxr/imaging/hgiVulkan/vulkan.h"
 #include "pxr/imaging/hgiVulkan/conversions.h"
 #include "pxr/imaging/hgiVulkan/buffer.h"
+#include "pxr/imaging/hgiVulkan/shaderFunction.h"
 
 #include "pxr/base/tf/diagnostic.h"
 #include "pxr/base/tf/iterator.h"
@@ -129,6 +130,12 @@ _ShaderStageTable[][2] =
     {HgiShaderStageTessellationControl, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
     {HgiShaderStageTessellationEval,    VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
     {HgiShaderStageGeometry,            VK_SHADER_STAGE_GEOMETRY_BIT},
+    {HgiShaderStageRayGen,            VK_SHADER_STAGE_RAYGEN_BIT_KHR},
+    {HgiShaderStageAnyHit,            VK_SHADER_STAGE_ANY_HIT_BIT_KHR},
+    {HgiShaderStageClosestHit,            VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
+    {HgiShaderStageMiss,            VK_SHADER_STAGE_MISS_BIT_KHR},
+    {HgiShaderStageIntersection,            VK_SHADER_STAGE_INTERSECTION_BIT_KHR},
+    {HgiShaderStageCallable,            VK_SHADER_STAGE_CALLABLE_BIT_KHR},
 };
 static_assert(HgiShaderStageCustomBitsBegin == 1 << 8, "");
 
@@ -203,9 +210,10 @@ _BindResourceTypeTable[HgiBindResourceTypeCount][2] =
     {HgiBindResourceTypeCombinedSamplerImage, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER},
     {HgiBindResourceTypeStorageImage,         VK_DESCRIPTOR_TYPE_STORAGE_IMAGE},
     {HgiBindResourceTypeUniformBuffer,        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER},
-    {HgiBindResourceTypeStorageBuffer,        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER}
+    {HgiBindResourceTypeStorageBuffer,        VK_DESCRIPTOR_TYPE_STORAGE_BUFFER},
+    {HgiBindResourceTypeAccelerationStructure,        VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR},
 };
-static_assert(HgiBindResourceTypeCount==6, "");
+static_assert(HgiBindResourceTypeCount==7, "");
 
 static const uint32_t
 _blendEquationTable[HgiBlendOpCount][2] =
@@ -389,6 +397,16 @@ _AccelerationStructureTypeTable[][2] =
 };
 
 static const uint32_t
+_RayTracingShaderGroupTypeTable[][2] =
+{
+    {HgiRayTracingShaderGroupTypeGeneral, VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR},
+    {HgiRayTracingShaderGroupTypeTriangles, VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR},
+    {HgiRayTracingShaderGroupTypeProcedural, VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR},
+};
+
+
+
+static const uint32_t
 _AccelerationStructureGeometryFlagsTable[][2] =
 {
     {HgiAccelerationStructureGeometryOpaque, VK_GEOMETRY_OPAQUE_BIT_KHR},
@@ -519,6 +537,12 @@ HgiVulkanConversions::GetBufferUsage(HgiBufferUsage bu)
         TF_CODING_ERROR("Missing buffer usage table entry");
     }
     return vkFlags;
+}
+
+VkRayTracingShaderGroupTypeKHR
+HgiVulkanConversions::GetRayTracingShaderGroupType(HgiRayTracingShaderGroupType group)
+{
+    return VkRayTracingShaderGroupTypeKHR(_RayTracingShaderGroupTypeTable[group][1]);
 }
 
 VkCullModeFlags

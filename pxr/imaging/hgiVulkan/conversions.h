@@ -125,6 +125,11 @@ public:
     HGIVULKAN_API
         static VkGeometryFlagBitsKHR
         GetAccelerationStructureGeometryFlags(HgiAccelerationStructureGeometryFlags flags);
+
+    HGIVULKAN_API
+        static VkRayTracingShaderGroupTypeKHR
+        GetRayTracingShaderGroupType(HgiRayTracingShaderGroupType group);
+
 };
 
 

@@ -1,3 +1,4 @@
+#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgi/rayTracingPipeline.h"
 //
 // Copyright 2020 Pixar
 //
@@ -38,6 +39,33 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+struct HgiRayTracingPipelineShaderDesc {
+    HgiShaderFunctionHandle shader;
+    std::string entryPoint = "main";
+};
+
+struct HgiRayTracingPipelineGroupDesc {
+    HgiRayTracingShaderGroupType type;
+    uint32_t                     generalShader = 0xFFFF;
+    uint32_t                     closestHitShader = 0xFFFF;
+    uint32_t                     anyHitShader = 0xFFFF;
+    uint32_t                     intersectionShader = 0xFFFF;
+
+};
+
+struct HgiRayTracingPipelineLayoutBindingDesc {
+    uint32_t                binding;
+    HgiBindResourceType     type;
+    uint32_t                count = 1;
+    HgiShaderStage          shaderStage;
+    HgiSamplerHandleVector  samplers;
+};
+
+struct HgiRayTracingPipelineDescriptorSetLayoutDesc {
+    std::vector<HgiRayTracingPipelineLayoutBindingDesc> layoutBinding;
+
+};
+
 /// \struct HgiRayTracingPipelineDesc
 ///
 /// Describes the properties needed to create a GPU compute pipeline.
@@ -52,20 +80,14 @@ PXR_NAMESPACE_OPEN_SCOPE
 struct HgiRayTracingPipelineDesc
 {
     HGI_API
-    HgiRayTracingPipelineDesc();
+        HgiRayTracingPipelineDesc();
 
     std::string debugName;
+    std::vector<HgiRayTracingPipelineDescriptorSetLayoutDesc> descriptorSetLayouts;
+    std::vector<HgiRayTracingPipelineShaderDesc> shaders;
+    std::vector<HgiRayTracingPipelineGroupDesc> groups;
+    uint32_t maxRayRecursionDepth;
 };
-
-HGI_API
-bool operator==(
-    const HgiRayTracingPipelineDesc& lhs,
-    const HgiRayTracingPipelineDesc& rhs);
-
-HGI_API
-bool operator!=(
-    const HgiRayTracingPipelineDesc& lhs,
-    const HgiRayTracingPipelineDesc& rhs);
 
 
 ///
@@ -81,21 +103,21 @@ class HgiRayTracingPipeline
 {
 public:
     HGI_API
-    virtual ~HgiRayTracingPipeline();
+        virtual ~HgiRayTracingPipeline();
 
     /// The descriptor describes the object.
     HGI_API
-    HgiRayTracingPipelineDesc const& GetDescriptor() const;
+        HgiRayTracingPipelineDesc const& GetDescriptor() const;
 
 protected:
     HGI_API
-    HgiRayTracingPipeline(HgiRayTracingPipelineDesc const& desc);
+        HgiRayTracingPipeline(HgiRayTracingPipelineDesc const& desc);
 
     HgiRayTracingPipelineDesc _descriptor;
 
 private:
     HgiRayTracingPipeline() = delete;
-    HgiRayTracingPipeline & operator=(const HgiRayTracingPipeline&) = delete;
+    HgiRayTracingPipeline& operator=(const HgiRayTracingPipeline&) = delete;
     HgiRayTracingPipeline(const HgiRayTracingPipeline&) = delete;
 };
 

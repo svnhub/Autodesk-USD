@@ -30,20 +30,6 @@ HgiRayTracingPipelineDesc::HgiRayTracingPipelineDesc()
 {
 }
 
-bool operator==(
-    const HgiRayTracingPipelineDesc& lhs,
-    const HgiRayTracingPipelineDesc& rhs)
-{
-    return lhs.debugName == rhs.debugName;
-}
-
-bool operator!=(
-    const HgiRayTracingPipelineDesc& lhs,
-    const HgiRayTracingPipelineDesc& rhs)
-{
-    return !(lhs == rhs);
-}
-
 HgiRayTracingPipeline::HgiRayTracingPipeline(HgiRayTracingPipelineDesc const& desc)
     : _descriptor(desc)
 {

@@ -396,6 +396,7 @@ enum HgiBindResourceType
     HgiBindResourceTypeStorageImage,
     HgiBindResourceTypeUniformBuffer,
     HgiBindResourceTypeStorageBuffer,
+    HgiBindResourceTypeAccelerationStructure,
 
     HgiBindResourceTypeCount
 };
@@ -779,6 +780,12 @@ enum HgiIndexType {
 
 enum HgiAccelerationStructureBuildFlags {
     HgiAccelerationStructureBuildFlagsPreferFastTrace,
+};
+
+enum HgiRayTracingShaderGroupType {
+    HgiRayTracingShaderGroupTypeGeneral,
+    HgiRayTracingShaderGroupTypeTriangles,
+    HgiRayTracingShaderGroupTypeProcedural,
 };
 
 PXR_NAMESPACE_CLOSE_SCOPE

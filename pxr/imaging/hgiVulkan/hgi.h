@@ -34,6 +34,7 @@
 #include "pxr/imaging/hgiVulkan/device.h"
 #include "pxr/imaging/hgiVulkan/vulkan.h"
 #include "pxr/imaging/hgiVulkan/accelerationStructureCmds.h"
+#include "pxr/imaging/hgiVulkan/rayTracingPipeline.h"
 
 #include <thread>
 #include <vector>
@@ -130,11 +131,18 @@ public:
         HgiGraphicsPipelineHandle* pipeHandle) override;
 
     HGIVULKAN_API
-    HgiComputePipelineHandle CreateComputePipeline(
-        HgiComputePipelineDesc const& pipeDesc) override;
+        HgiComputePipelineHandle CreateComputePipeline(
+            HgiComputePipelineDesc const& pipeDesc) override;
 
     HGIVULKAN_API
-    void DestroyComputePipeline(HgiComputePipelineHandle* pipeHandle) override;
+        void DestroyComputePipeline(HgiComputePipelineHandle* pipeHandle) override;
+
+    HGIVULKAN_API
+        HgiRayTracingPipelineHandle CreateRayTracingPipeline(
+            HgiRayTracingPipelineDesc const& pipeDesc) override;
+
+    HGIVULKAN_API
+        void DestroyRayTracingPipeline(HgiRayTracingPipelineHandle* pipeHandle) override;
 
     HGIVULKAN_API
     TfToken const& GetAPIName() const override;

@@ -38,7 +38,7 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-struct HgiAccelerationStructureInstance
+struct HgiAccelerationStructureInstanceDesc
 {
     GfMatrix4f  transform;
     uint32_t id = 0;
@@ -51,7 +51,7 @@ struct HgiAccelerationStructureInstance
 struct HgiAccelerationStructureInstanceGeometryDesc
 {
     std::string debugName;
-    std::vector<HgiAccelerationStructureInstance> instances;
+    std::vector<HgiAccelerationStructureInstanceDesc> instances;
 };
 
 

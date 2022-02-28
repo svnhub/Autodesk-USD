@@ -38,6 +38,7 @@
 #include "pxr/imaging/hgi/graphicsCmdsDesc.h"
 #include "pxr/imaging/hgi/graphicsPipeline.h"
 #include "pxr/imaging/hgi/resourceBindings.h"
+#include "pxr/imaging/hgi/rayTracingPipeline.h"
 #include "pxr/imaging/hgi/sampler.h"
 #include "pxr/imaging/hgi/shaderFunction.h"
 #include "pxr/imaging/hgi/shaderProgram.h"
@@ -315,6 +316,20 @@ public:
     /// Thread safety: Destruction must happen on main thread. See notes above.
     HGI_API
     virtual void DestroyComputePipeline(HgiComputePipelineHandle* pipeHandle)=0;
+
+
+    /// Create a new compute pipeline state object.
+    /// Thread safety: Creation must happen on main thread. See notes above.
+    HGI_API
+        virtual HgiRayTracingPipelineHandle CreateRayTracingPipeline(
+            HgiRayTracingPipelineDesc const& pipeDesc) {
+        return HgiRayTracingPipelineHandle();
+    }
+
+    /// Destroy a compute pipeline state object.
+    /// Thread safety: Destruction must happen on main thread. See notes above.
+    HGI_API
+        virtual void DestroyRayTracingPipeline(HgiRayTracingPipelineHandle* pipeHandle) {}
 
     /// Return the name of the api (e.g. "OpenGL").
     /// Thread safety: This call is thread safe.
