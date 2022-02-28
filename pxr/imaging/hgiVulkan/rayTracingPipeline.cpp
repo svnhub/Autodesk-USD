@@ -45,15 +45,15 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
 
     for (int i = 0; i < desc.descriptorSetLayouts.size(); i++) {
         std::vector<VkDescriptorSetLayoutBinding> bindings;
-        for(int j=0;j< desc.descriptorSetLayouts[i].layoutBinding.size();j++)
+        for(int j=0;j< desc.descriptorSetLayouts[i].resourceBinding.size();j++)
         {
-            HgiRayTracingPipelineLayoutBindingDesc bindingDesc = desc.descriptorSetLayouts[i].layoutBinding[j];
+            HgiRayTracingPipelineResourceBindingDesc bindingDesc = desc.descriptorSetLayouts[i].resourceBinding[j];
 
             VkDescriptorSetLayoutBinding layoutBinding{};
-            layoutBinding.binding = bindingDesc.binding;
-            layoutBinding.descriptorType = HgiVulkanConversions::GetDescriptorType(bindingDesc.type);
+            layoutBinding.binding = bindingDesc.bindingIndex;
+            layoutBinding.descriptorType = HgiVulkanConversions::GetDescriptorType(bindingDesc.resourceType);
             layoutBinding.descriptorCount = bindingDesc.count;
-            layoutBinding.stageFlags = HgiVulkanConversions::GetShaderStages(bindingDesc.shaderStage);
+            layoutBinding.stageFlags = HgiVulkanConversions::GetShaderStages(bindingDesc.stageUsage);
             bindings.push_back(layoutBinding);
         }
 
@@ -62,7 +62,7 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
         descriptorSetlayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
         descriptorSetlayoutCI.bindingCount = static_cast<uint32_t>(bindings.size());
         descriptorSetlayoutCI.pBindings = bindings.data();
-        TF_VERIFY(vkCreateDescriptorSetLayout(_device->GetVulkanDevice(), &descriptorSetlayoutCI, nullptr, &descriptorSetLayout));
+        TF_VERIFY(vkCreateDescriptorSetLayout(_device->GetVulkanDevice(), &descriptorSetlayoutCI, nullptr, &descriptorSetLayout)== VK_SUCCESS);
         _vkDescriptorSetLayouts.push_back(descriptorSetLayout);
     }
 
@@ -70,7 +70,7 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
     pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutCI.setLayoutCount = _vkDescriptorSetLayouts.size();
     pipelineLayoutCI.pSetLayouts = _vkDescriptorSetLayouts.data();
-    TF_VERIFY(vkCreatePipelineLayout(_device->GetVulkanDevice(), &pipelineLayoutCI, nullptr, &_vkPipelineLayout));
+    TF_VERIFY(vkCreatePipelineLayout(_device->GetVulkanDevice(), &pipelineLayoutCI, nullptr, &_vkPipelineLayout)==VK_SUCCESS);
 
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
    
@@ -106,7 +106,7 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
     rayTracingPipelineCI.pGroups = shaderGroups.data();
     rayTracingPipelineCI.maxPipelineRayRecursionDepth = desc.maxRayRecursionDepth;
     rayTracingPipelineCI.layout = _vkPipelineLayout;
-    TF_VERIFY(_device->vkCreateRayTracingPipelinesKHR(_device->GetVulkanDevice(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &rayTracingPipelineCI, nullptr, &_vkPipeline));
+    TF_VERIFY(_device->vkCreateRayTracingPipelinesKHR(_device->GetVulkanDevice(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &rayTracingPipelineCI, nullptr, &_vkPipeline)== VK_SUCCESS);
 
     // Debug label
     if (!desc.debugName.empty()) {

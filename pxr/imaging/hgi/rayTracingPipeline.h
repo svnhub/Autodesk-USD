@@ -53,16 +53,16 @@ struct HgiRayTracingPipelineGroupDesc {
 
 };
 
-struct HgiRayTracingPipelineLayoutBindingDesc {
-    uint32_t                binding;
-    HgiBindResourceType     type;
+struct HgiRayTracingPipelineResourceBindingDesc {
+    uint32_t                bindingIndex;
+    HgiBindResourceType     resourceType;
     uint32_t                count = 1;
-    HgiShaderStage          shaderStage;
+    HgiShaderStage          stageUsage;
     HgiSamplerHandleVector  samplers;
 };
 
 struct HgiRayTracingPipelineDescriptorSetLayoutDesc {
-    std::vector<HgiRayTracingPipelineLayoutBindingDesc> layoutBinding;
+    std::vector<HgiRayTracingPipelineResourceBindingDesc> resourceBinding;
 
 };
 

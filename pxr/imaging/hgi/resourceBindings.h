@@ -32,6 +32,7 @@
 #include "pxr/imaging/hgi/sampler.h"
 #include "pxr/imaging/hgi/texture.h"
 #include "pxr/imaging/hgi/types.h"
+#include "pxr/imaging/hgi/accelerationStructure.h"
 
 #include <string>
 #include <vector>
@@ -40,6 +41,24 @@
 PXR_NAMESPACE_OPEN_SCOPE
 
 
+struct HgiAccelerationStructureBindDesc
+{
+    HgiAccelerationStructureHandleVector accelerationStructures;
+    HgiBindResourceType resourceType = HgiBindResourceTypeAccelerationStructure;
+    uint32_t bindingIndex = 0;
+    HgiShaderStage stageUsage;
+};
+using HgiAccelerationStructureBindDescVector = std::vector<HgiAccelerationStructureBindDesc>;
+
+HGI_API
+bool operator==(
+    const HgiAccelerationStructureBindDesc& lhs,
+    const HgiAccelerationStructureBindDesc& rhs);
+
+HGI_API
+inline bool operator!=(
+    const HgiAccelerationStructureBindDesc& lhs,
+    const HgiAccelerationStructureBindDesc& rhs);
 
 
 
@@ -77,7 +96,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 struct HgiBufferBindDesc
 {
     HGI_API
-    HgiBufferBindDesc();
+        HgiBufferBindDesc();
 
     HgiBufferHandleVector buffers;
     std::vector<uint32_t> offsets;
@@ -123,7 +142,7 @@ inline bool operator!=(
 struct HgiTextureBindDesc
 {
     HGI_API
-    HgiTextureBindDesc();
+        HgiTextureBindDesc();
 
     HgiTextureHandleVector textures;
     HgiSamplerHandleVector samplers;
@@ -157,9 +176,10 @@ bool operator!=(
 struct HgiResourceBindingsDesc
 {
     HGI_API
-    HgiResourceBindingsDesc();
+        HgiResourceBindingsDesc();
 
     std::string debugName;
+    HgiAccelerationStructureBindDescVector accelerationStructures;
     HgiBufferBindDescVector buffers;
     HgiTextureBindDescVector textures;
 };
@@ -185,21 +205,21 @@ class HgiResourceBindings
 {
 public:
     HGI_API
-    virtual ~HgiResourceBindings();
+        virtual ~HgiResourceBindings();
 
     /// The descriptor describes the object.
     HGI_API
-    HgiResourceBindingsDesc const& GetDescriptor() const;
+        HgiResourceBindingsDesc const& GetDescriptor() const;
 
 protected:
     HGI_API
-    HgiResourceBindings(HgiResourceBindingsDesc const& desc);
+        HgiResourceBindings(HgiResourceBindingsDesc const& desc);
 
     HgiResourceBindingsDesc _descriptor;
 
 private:
     HgiResourceBindings() = delete;
-    HgiResourceBindings & operator=(const HgiResourceBindings&) = delete;
+    HgiResourceBindings& operator=(const HgiResourceBindings&) = delete;
     HgiResourceBindings(const HgiResourceBindings&) = delete;
 };
 

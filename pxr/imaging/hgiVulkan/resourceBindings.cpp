@@ -31,6 +31,7 @@
 #include "pxr/imaging/hgiVulkan/resourceBindings.h"
 #include "pxr/imaging/hgiVulkan/sampler.h"
 #include "pxr/imaging/hgiVulkan/texture.h"
+#include "pxr/imaging/hgiVulkan/accelerationStructure.h"
 
 #include <unordered_set>
 
@@ -108,6 +109,11 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
     bool reorder = false;
     std::unordered_set<uint32_t> bindingsVisited;
 
+    for (HgiAccelerationStructureBindDesc const& b : desc.accelerationStructures) {
+        if (reorder) break;
+        reorder = bindingsVisited.find(b.bindingIndex) != bindingsVisited.end();
+        bindingsVisited.insert(b.bindingIndex);
+    }
     for (HgiBufferBindDesc const& b : desc.buffers) {
         if (reorder) break;
         reorder = bindingsVisited.find(b.bindingIndex) != bindingsVisited.end();
@@ -125,14 +131,27 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
     // Buffers
     std::vector<VkDescriptorSetLayoutBinding> bindings;
 
-    for (HgiBufferBindDesc const& b : desc.buffers) {
+    for (HgiAccelerationStructureBindDesc const& b : desc.accelerationStructures) {
         VkDescriptorSetLayoutBinding d = {};
-        uint32_t bi = reorder ? (uint32_t) bindings.size() : b.bindingIndex;
+        uint32_t bi = reorder ? (uint32_t)bindings.size() : b.bindingIndex;
         d.binding = bi; // binding number in shader stage
         d.descriptorType =
             HgiVulkanConversions::GetDescriptorType(b.resourceType);
         poolSizes[b.resourceType].descriptorCount++;
-        d.descriptorCount = (uint32_t) b.buffers.size();
+        d.descriptorCount = (uint32_t)b.accelerationStructures.size();
+        d.stageFlags = HgiVulkanConversions::GetShaderStages(b.stageUsage);
+        d.pImmutableSamplers = nullptr;
+        bindings.push_back(std::move(d));
+    }
+
+    for (HgiBufferBindDesc const& b : desc.buffers) {
+        VkDescriptorSetLayoutBinding d = {};
+        uint32_t bi = reorder ? (uint32_t)bindings.size() : b.bindingIndex;
+        d.binding = bi; // binding number in shader stage
+        d.descriptorType =
+            HgiVulkanConversions::GetDescriptorType(b.resourceType);
+        poolSizes[b.resourceType].descriptorCount++;
+        d.descriptorCount = (uint32_t)b.buffers.size();
         d.stageFlags = HgiVulkanConversions::GetShaderStages(b.stageUsage);
         d.pImmutableSamplers = nullptr;
         bindings.push_back(std::move(d));
@@ -241,15 +260,76 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
         {HgiBindResourceTypeUniformBuffer,
             limits.maxPerStageDescriptorUniformBuffers},
         {HgiBindResourceTypeStorageBuffer,
-            limits.maxPerStageDescriptorStorageBuffers}
+            limits.maxPerStageDescriptorStorageBuffers},
+        {HgiBindResourceTypeAccelerationStructure,
+            1024}
     };
     static_assert(HgiBindResourceTypeCount==7, "");
+
+    std::vector<VkWriteDescriptorSet> writeSets;
+
+    //
+    // Acceleration Structures
+    //
+
+    std::vector<VkWriteDescriptorSetAccelerationStructureKHR> accelerationStructureInfos;
+    std::vector < std::vector<VkAccelerationStructureKHR> > accelerationStructureIds;
+    accelerationStructureInfos.resize(desc.accelerationStructures.size());
+    accelerationStructureIds.resize(desc.accelerationStructures.size());
+
+    int asIdx = 0;
+    for (HgiAccelerationStructureBindDesc const& asDesc : desc.accelerationStructures) {
+        uint32_t& limit = bindLimits[asDesc.resourceType][1];
+        if (!TF_VERIFY(limit > 0, "Maximum size array-of-acceleration structures exceeded")) {
+            break;
+        }
+        limit -= 1;
+
+        // Each buffer can be an array of buffers (usually one)
+        for (size_t i = 0; i < asDesc.accelerationStructures.size(); i++) {
+            HgiAccelerationStructureHandle const& asHandle = asDesc.accelerationStructures[i];
+            HgiVulkanAccelerationStructure* as =
+                static_cast<HgiVulkanAccelerationStructure*>(asHandle.Get());
+            if (!TF_VERIFY(as)) continue;
+
+            accelerationStructureIds[asIdx].push_back((VkAccelerationStructureKHR)as->GetRawResource());
+        }
+
+        VkWriteDescriptorSetAccelerationStructureKHR asInfo{};
+        asInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+        asInfo.accelerationStructureCount = accelerationStructureIds[asIdx].size();
+        asInfo.pAccelerationStructures = accelerationStructureIds[asIdx].data();
+        accelerationStructureInfos[asIdx] = asInfo;
+        asIdx++;
+
+    }
+
+    size_t asInfoOffset = 0;
+    asIdx = 0;
+    for (HgiAccelerationStructureBindDesc const& asDesc : desc.accelerationStructures) {
+        VkWriteDescriptorSet writeSet = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+        writeSet.dstBinding = reorder ? // index in descriptor set
+            (uint32_t)writeSets.size() :
+            asDesc.bindingIndex;
+        writeSet.pNext = &accelerationStructureInfos[asIdx];
+        writeSet.dstArrayElement = 0;
+        writeSet.descriptorCount = (uint32_t)asDesc.accelerationStructures.size(); // 0 ok
+        writeSet.dstSet = _vkDescriptorSet;
+        writeSet.pBufferInfo = nullptr;
+        writeSet.pImageInfo = nullptr;
+        writeSet.pTexelBufferView = nullptr;
+        writeSet.descriptorType =
+            HgiVulkanConversions::GetDescriptorType(asDesc.resourceType);
+        writeSets.push_back(std::move(writeSet));
+        asInfoOffset += asDesc.accelerationStructures.size();
+        asIdx++;
+    }
+
+
 
     //
     // Buffers
     //
-
-    std::vector<VkWriteDescriptorSet> writeSets;
 
     std::vector<VkDescriptorBufferInfo> bufferInfos;
     bufferInfos.reserve(desc.buffers.size());
