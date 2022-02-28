@@ -73,6 +73,10 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(H
     instances.resize(desc.instances.size());
     for(int i=0;i< desc.instances.size();i++)
     {
+        HgiAccelerationStructureHandle blas = desc.instances[i].blas;
+        HgiVulkanAccelerationStructure* pVkBlas = (HgiVulkanAccelerationStructure*)blas.Get();
+        HgiBufferHandle blasBuffer = pVkBlas->GetAccelerationStructureBuffer();
+
         for (int j = 0; j < 3; j++) {
             for (int k = 0; k < 4; k++) {
                 instances[i].transform.matrix[j][k] = desc.instances[i].transform[j][k];
@@ -82,13 +86,13 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(H
         instances[i].mask = desc.instances[i].mask;
         instances[i].instanceShaderBindingTableRecordOffset = desc.instances[i].groupIndex;
         instances[i].flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
-        instances[i].accelerationStructureReference = GetBufferAddress(desc.instances[i].blasBuffer).deviceAddress;
+        instances[i].accelerationStructureReference = GetBufferAddress(blasBuffer).deviceAddress;
 
     }
 
     HgiBufferDesc instancesBufferDesc;
     instancesBufferDesc.debugName = desc.debugName + "InstancesBuffer";
-    instancesBufferDesc.usage = HgiVulkanBufferUsageBits::HgiBufferUsageAccelerationStructureBuildInputReadOnly | HgiVulkanBufferUsageBits::HgiBufferUsageRayTracingExtensions | HgiVulkanBufferUsageBits::HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    instancesBufferDesc.usage = HgiBufferUsageAccelerationStructureBuildInputReadOnly | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
     instancesBufferDesc.initialData = &instances[0];
     instancesBufferDesc.byteSize = instances.size()*sizeof(instances[0]);
     _instancesBuffer = pHgi->CreateBuffer(instancesBufferDesc);
@@ -144,7 +148,7 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
 
     HgiBufferDesc accelBufferDesc;
     accelBufferDesc.debugName = _descriptor.debugName + "AccelerationStructureBuffer";
-    accelBufferDesc.usage = HgiVulkanBufferUsageBits::HgiBufferUsageAccelerationStructureStorage | HgiVulkanBufferUsageBits::HgiBufferUsageRayTracingExtensions | HgiVulkanBufferUsageBits::HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    accelBufferDesc.usage = HgiBufferUsageAccelerationStructureStorage | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
     accelBufferDesc.initialData = nullptr;
     accelBufferDesc.byteSize = _buildSizesInfo.accelerationStructureSize;
     _accelStructureBuffer = pHgi->CreateBuffer(accelBufferDesc);
@@ -160,7 +164,7 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
 
     HgiBufferDesc scratchBufferDesc;
     scratchBufferDesc.debugName = _descriptor.debugName + "ScratchBuffer";
-    scratchBufferDesc.usage = HgiBufferUsageStorage | HgiVulkanBufferUsageBits::HgiBufferUsageRayTracingExtensions | HgiVulkanBufferUsageBits::HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    scratchBufferDesc.usage = HgiBufferUsageStorage | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
     scratchBufferDesc.initialData = nullptr;
     scratchBufferDesc.byteSize = _buildSizesInfo.buildScratchSize;
     _scratchBuffer = pHgi->CreateBuffer(scratchBufferDesc);

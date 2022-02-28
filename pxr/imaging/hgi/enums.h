@@ -76,10 +76,10 @@ using HgiBits = uint32_t;
 ///
 enum HgiDeviceCapabilitiesBits : HgiBits
 {
-    HgiDeviceCapabilitiesBitsPresentation       = 1 << 0,
-    HgiDeviceCapabilitiesBitsBindlessBuffers    = 1 << 1,
+    HgiDeviceCapabilitiesBitsPresentation = 1 << 0,
+    HgiDeviceCapabilitiesBitsBindlessBuffers = 1 << 1,
     HgiDeviceCapabilitiesBitsConcurrentDispatch = 1 << 2,
-    HgiDeviceCapabilitiesBitsUnifiedMemory      = 1 << 3,
+    HgiDeviceCapabilitiesBitsUnifiedMemory = 1 << 3,
     HgiDeviceCapabilitiesBitsBuiltinBarycentrics     = 1 << 4,
     HgiDeviceCapabilitiesBitsShaderDrawParameters    = 1 << 5,
     HgiDeviceCapabilitiesBitsMultiDrawIndirect       = 1 << 6,
@@ -150,11 +150,11 @@ enum HgiTextureType
 ///
 enum HgiTextureUsageBits : HgiBits
 {
-    HgiTextureUsageBitsColorTarget   = 1 << 0,
-    HgiTextureUsageBitsDepthTarget   = 1 << 1,
+    HgiTextureUsageBitsColorTarget = 1 << 0,
+    HgiTextureUsageBitsDepthTarget = 1 << 1,
     HgiTextureUsageBitsStencilTarget = 1 << 2,
-    HgiTextureUsageBitsShaderRead    = 1 << 3,
-    HgiTextureUsageBitsShaderWrite   = 1 << 4,
+    HgiTextureUsageBitsShaderRead = 1 << 3,
+    HgiTextureUsageBitsShaderWrite = 1 << 4,
 
     HgiTextureUsageCustomBitsBegin = 1 << 5,
 };
@@ -190,7 +190,7 @@ enum HgiSamplerAddressMode
 enum HgiSamplerFilter
 {
     HgiSamplerFilterNearest = 0,
-    HgiSamplerFilterLinear  = 1,
+    HgiSamplerFilterLinear = 1,
 
     HgiSamplerFilterCount
 };
@@ -211,8 +211,8 @@ enum HgiSamplerFilter
 enum HgiMipFilter
 {
     HgiMipFilterNotMipmapped = 0,
-    HgiMipFilterNearest      = 1,
-    HgiMipFilterLinear       = 2,
+    HgiMipFilterNearest = 1,
+    HgiMipFilterLinear = 2,
 
     HgiMipFilterCount
 };
@@ -242,10 +242,10 @@ enum HgiBorderColor
 ///
 enum HgiSampleCount
 {
-    HgiSampleCount1  = 1,
-    HgiSampleCount2  = 2,
-    HgiSampleCount4  = 4,
-    HgiSampleCount8  = 8,
+    HgiSampleCount1 = 1,
+    HgiSampleCount2 = 2,
+    HgiSampleCount4 = 4,
+    HgiSampleCount8 = 8,
     HgiSampleCount16 = 16,
 
     HgiSampleCountEnd
@@ -315,10 +315,16 @@ enum HgiBufferUsageBits : HgiBits
 {
     HgiBufferUsageUniform = 1 << 0,
     HgiBufferUsageIndex32 = 1 << 1,
-    HgiBufferUsageVertex  = 1 << 2,
+    HgiBufferUsageVertex = 1 << 2,
     HgiBufferUsageStorage = 1 << 3,
+    HgiBufferUsageAccelerationStructureBuildInputReadOnly = 1 << 4,
+    HgiBufferUsageAccelerationStructureStorage = 1 << 5,
+    HgiBufferUsageShaderDeviceAddress = 1 << 6,
+    HgiBufferUsageShaderBindingTable = 1 << 7,
+    HgiBufferUsageNoTransfer = 1 << 8,
+    HgiBufferUsageRayTracingExtensions = 1 << 9,
 
-    HgiBufferUsageCustomBitsBegin = 1 << 4,
+    HgiBufferUsageCustomBitsBegin = 1 << 10,
 };
 using HgiBufferUsage = HgiBits;
 
@@ -352,15 +358,22 @@ using HgiBufferUsage = HgiBits;
 ///
 enum HgiShaderStageBits : HgiBits
 {
-    HgiShaderStageVertex               = 1 << 0,
-    HgiShaderStageFragment             = 1 << 1,
-    HgiShaderStageCompute              = 1 << 2,
-    HgiShaderStageTessellationControl  = 1 << 3,
-    HgiShaderStageTessellationEval     = 1 << 4,
-    HgiShaderStageGeometry             = 1 << 5,
+    HgiShaderStageVertex = 1 << 0,
+    HgiShaderStageFragment = 1 << 1,
+    HgiShaderStageCompute = 1 << 2,
+    HgiShaderStageTessellationControl = 1 << 3,
+    HgiShaderStageTessellationEval = 1 << 4,
+    HgiShaderStageGeometry = 1 << 5,
     HgiShaderStagePostTessellationControl = 1 << 6,
     HgiShaderStagePostTessellationVertex = 1 << 7,
-    HgiShaderStageCustomBitsBegin        = 1 << 8,
+    HgiShaderStageRayGen = 1 << 8,
+    HgiShaderStageAnyHit = 1 << 9,
+    HgiShaderStageClosestHit = 1 << 10,
+    HgiShaderStageMiss = 1 << 11,
+    HgiShaderStageIntersection = 1 << 12,
+    HgiShaderStageCallable = 1 << 13,
+
+    HgiShaderStageCustomBitsBegin        = 1 << 4,
 };
 using HgiShaderStage = HgiBits;
 
@@ -673,7 +686,7 @@ enum HgiSubmitWaitType
 enum HgiMemoryBarrierBits
 {
     HgiMemoryBarrierNone = 0,
-    HgiMemoryBarrierAll  = 1 << 0
+    HgiMemoryBarrierAll = 1 << 0
 };
 using HgiMemoryBarrier = HgiBits;
 

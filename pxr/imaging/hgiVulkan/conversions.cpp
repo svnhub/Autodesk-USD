@@ -137,7 +137,7 @@ _ShaderStageTable[][2] =
     {HgiShaderStageIntersection,            VK_SHADER_STAGE_INTERSECTION_BIT_KHR},
     {HgiShaderStageCallable,            VK_SHADER_STAGE_CALLABLE_BIT_KHR},
 };
-static_assert(HgiShaderStageCustomBitsBegin == 1 << 8, "");
+static_assert(HgiShaderStageCustomBitsBegin == 1 << 14, "");
 
 static const uint32_t
 _TextureUsageTable[][2] =
@@ -173,7 +173,7 @@ _BufferUsageTable[][2] =
     {HgiBufferUsageAccelerationStructureStorage, VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR},
     {HgiBufferUsageShaderDeviceAddress, VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT},
 };
-static_assert(HgiBufferUsageCustomBitsBegin == 1 << 4, "");
+static_assert(HgiBufferUsageCustomBitsBegin == 1 << 10, "");
 
 static const uint32_t
 _CullModeTable[HgiCullModeCount][2] =

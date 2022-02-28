@@ -38,6 +38,9 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+class HgiAccelerationStructure;
+using HgiAccelerationStructureHandle = HgiHandle<HgiAccelerationStructure>;
+
 struct HgiAccelerationStructureInstanceDesc
 {
     GfMatrix4f  transform;
@@ -45,7 +48,7 @@ struct HgiAccelerationStructureInstanceDesc
     uint32_t mask = 0xff;
     uint32_t groupIndex = 0;
     HgiAccelerationStructureInstanceFlags flags = HgiAccelerationStructureInstanceFlagsDisableFaceCulling;
-    HgiBufferHandle blasBuffer;
+    HgiAccelerationStructureHandle blas;
 };
 
 struct HgiAccelerationStructureInstanceGeometryDesc

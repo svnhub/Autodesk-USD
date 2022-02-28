@@ -131,17 +131,6 @@ private:
     void* _cpuStagingAddress;
 };
 
-
-enum HgiVulkanBufferUsageBits : HgiBits
-{
-    HgiBufferUsageAccelerationStructureBuildInputReadOnly = 1 << 4,
-    HgiBufferUsageAccelerationStructureStorage = 1 << 5,
-    HgiBufferUsageShaderDeviceAddress = 1 << 6,
-    HgiBufferUsageShaderBindingTable = 1 << 7,
-    HgiBufferUsageNoTransfer = 1 << 8,
-    HgiBufferUsageRayTracingExtensions = 1 << 9,
-};
-
 PXR_NAMESPACE_CLOSE_SCOPE
 
 #endif
