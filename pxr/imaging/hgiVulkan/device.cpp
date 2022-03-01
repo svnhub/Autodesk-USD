@@ -133,16 +133,10 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
         }
     }
 
-
     if (!_vkPhysicalDevice) {
         TF_CODING_ERROR("VULKAN_ERROR: Unable to determine physical device");
         return;
     }
-
-
-    std::cout << "API: " << VK_VERSION_MAJOR(props.apiVersion) << "." << VK_VERSION_MINOR(props.apiVersion) << "." << VK_VERSION_PATCH(props.apiVersion) << std::endl;
-    std::cout << "Driver: " << VK_VERSION_MAJOR(props.driverVersion) << "." << VK_VERSION_MINOR(props.driverVersion) << "." << VK_VERSION_PATCH(props.driverVersion) << std::endl;
-    std::cout << "Device: " << props.deviceName << std::endl;
 
     //
     // Query supported extensions for device
