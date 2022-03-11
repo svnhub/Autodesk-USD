@@ -89,7 +89,7 @@
       const envMapPromise = new Promise(resolve => {
         const pmremGenerator = new THREE.PMREMGenerator(renderer);
 				pmremGenerator.compileCubemapShader();
-        new RGBELoader().load('environments/helicopter-landing-pad-vis-4K.hdr', (texture) => {
+        new RGBELoader().load('environments/helicopter-landing-pad-vis-512.hdr', (texture) => {
           const hdrRenderTarget = pmremGenerator.fromEquirectangular(texture);
 
           texture.mapping = THREE.EquirectangularReflectionMapping;
