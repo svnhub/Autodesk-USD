@@ -19,7 +19,7 @@
     // Load the usd file
     let loadUSDPromise = new Promise( (resolve, reject) => {
       let req = new XMLHttpRequest();
-      req.open("GET", "/" + filename, true);
+      req.open("GET", filename, true);
       req.responseType = "arraybuffer";
 
       req.onload = function (oEvent) {
@@ -39,7 +39,10 @@
     Promise.all([loadUSDPromise, getUsdModule(), initPromise]).then(async ([usdFile, Usd]) => {
       window.Usd = Usd;
 
-      let extension = filename.split('.')[1];
+      // find file extension; strip query parameters and make sure URLs work as well
+      let parts = filename.split('.');
+      let extension = parts[parts.length - 1];
+      extension = extension.split('?')[0];
       let inputFile = 'input.' + extension;
 
       Usd.FS.createDataFile('/', inputFile, new Uint8Array(usdFile), true, true, true);
