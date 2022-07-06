@@ -31,17 +31,6 @@
 PXR_NAMESPACE_OPEN_SCOPE
 
 
-VkDeviceOrHostAddressConstKHR GetBufferAddress(HgiBufferHandle buffer) {
-    VkDeviceOrHostAddressConstKHR res;
-    if (!buffer)
-    {
-        res.deviceAddress = (VkDeviceAddress)0;
-        return res;
-    };
-    HgiVulkanBuffer* pBufferVk = (HgiVulkanBuffer*)buffer.Get();
-
-    return pBufferVk->GetConstDeviceAddress();
-}
 
 HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(
     Hgi *pHgi,
@@ -55,12 +44,12 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(
     _accelerationStructureGeometry.geometry.triangles.pNext = nullptr;
     _accelerationStructureGeometry.geometry.triangles.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR;
     _accelerationStructureGeometry.geometry.triangles.vertexFormat = HgiVulkanConversions::GetFormat(desc.vertexFormat);;
-    _accelerationStructureGeometry.geometry.triangles.vertexData = GetBufferAddress(desc.vertexData);
+    _accelerationStructureGeometry.geometry.triangles.vertexData.deviceAddress = desc.vertexData->GetDeviceAddress();
     _accelerationStructureGeometry.geometry.triangles.maxVertex = desc.maxVertex;
     _accelerationStructureGeometry.geometry.triangles.vertexStride = desc.vertexStride;
     _accelerationStructureGeometry.geometry.triangles.indexType = desc.indexType== HgiIndexTypeUInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32; //TODO respect format
-    _accelerationStructureGeometry.geometry.triangles.indexData = GetBufferAddress(desc.indexData);;
-    _accelerationStructureGeometry.geometry.triangles.transformData = GetBufferAddress(desc.transformData);
+    _accelerationStructureGeometry.geometry.triangles.indexData.deviceAddress = desc.indexData->GetDeviceAddress();
+    _accelerationStructureGeometry.geometry.triangles.transformData.deviceAddress = desc.transformData->GetDeviceAddress();
 
     _primitiveCount = desc.count;
 }
@@ -86,7 +75,7 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(H
         instances[i].mask = desc.instances[i].mask;
         instances[i].instanceShaderBindingTableRecordOffset = desc.instances[i].groupIndex;
         instances[i].flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
-        instances[i].accelerationStructureReference = GetBufferAddress(blasBuffer).deviceAddress;
+        instances[i].accelerationStructureReference = blasBuffer->GetDeviceAddress();
 
     }
 
@@ -103,7 +92,7 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(H
     _accelerationStructureGeometry.flags = VK_GEOMETRY_OPAQUE_BIT_KHR;
     _accelerationStructureGeometry.geometry.instances.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR;
     _accelerationStructureGeometry.geometry.instances.arrayOfPointers = VK_FALSE;
-    _accelerationStructureGeometry.geometry.instances.data = GetBufferAddress(_instancesBuffer);
+    _accelerationStructureGeometry.geometry.instances.data.deviceAddress = _instancesBuffer->GetDeviceAddress();
 
     _primitiveCount = instances.size();
 }
@@ -172,7 +161,7 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
 
     _buildGeomInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
     _buildGeomInfo.dstAccelerationStructure = _accelerationStructure;
-    _buildGeomInfo.scratchData.deviceAddress = pScratchBufferVk->GetDeviceAddress().deviceAddress;
+    _buildGeomInfo.scratchData.deviceAddress = pScratchBufferVk->GetDeviceAddress();
 
    
 

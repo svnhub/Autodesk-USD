@@ -50,7 +50,8 @@ struct HgiRayTracingPipelineGroupDesc {
     uint32_t                     closestHitShader = 0xFFFF;
     uint32_t                     anyHitShader = 0xFFFF;
     uint32_t                     intersectionShader = 0xFFFF;
-
+    void*                        pShaderRecord;
+    size_t                       shaderRecordLength;
 };
 
 struct HgiRayTracingPipelineResourceBindingDesc {

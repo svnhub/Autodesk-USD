@@ -58,6 +58,10 @@ public:
     HGIVULKAN_API
         void* GetCPUStagingAddress() override;
 
+    /// Returns the (writable) inflight bits of when this object was trashed.
+    HGIVULKAN_API
+        uint64_t GetDeviceAddress() const override;
+
     /// Returns true if the provided ptr matches the address of staging buffer.
     HGIVULKAN_API
         bool IsCPUStagingAddress(const void* address) const;
@@ -77,14 +81,6 @@ public:
     /// Returns the device used to create this object.
     HGIVULKAN_API
         HgiVulkanDevice* GetDevice() const;
-
-    /// Returns the (writable) inflight bits of when this object was trashed.
-    HGIVULKAN_API
-        HgiVulkanDeviceAddress GetDeviceAddress();
-
-    /// Returns the (writable) inflight bits of when this object was trashed.
-    HGIVULKAN_API
-        HgiVulkanConstDeviceAddress GetConstDeviceAddress();
 
     /// Returns the (writable) inflight bits of when this object was trashed.
     HGIVULKAN_API

@@ -318,26 +318,13 @@ HgiVulkanBuffer::GetInflightBits()
     return _inflightBits;
 }
 
-HgiVulkanDeviceAddress HgiVulkanBuffer::GetDeviceAddress()
+uint64_t HgiVulkanBuffer::GetDeviceAddress() const
 {
-    HgiVulkanDeviceAddress addr = {};
     VkBufferDeviceAddressInfoKHR bufferDeviceAI{};
     bufferDeviceAI.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
     bufferDeviceAI.buffer = _vkBuffer;
-    addr.deviceAddress = _device->vkGetBufferDeviceAddressKHR(_device->GetVulkanDevice(), &bufferDeviceAI);
 
-    return addr;
-}
-
-HgiVulkanConstDeviceAddress HgiVulkanBuffer::GetConstDeviceAddress()
-{
-    HgiVulkanConstDeviceAddress addr = {};
-    VkBufferDeviceAddressInfoKHR bufferDeviceAI{};
-    bufferDeviceAI.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO;
-    bufferDeviceAI.buffer = _vkBuffer;
-    addr.deviceAddress = _device->vkGetBufferDeviceAddressKHR(_device->GetVulkanDevice(), &bufferDeviceAI);
-
-    return addr;
+    return _device->vkGetBufferDeviceAddressKHR(_device->GetVulkanDevice(), &bufferDeviceAI);
 }
 
 

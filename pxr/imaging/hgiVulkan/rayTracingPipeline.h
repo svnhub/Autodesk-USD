@@ -102,6 +102,7 @@ private:
     HgiVulkanRayTracingPipeline(const HgiVulkanRayTracingPipeline&) = delete;
 
     void BuildShaderBindingTable();
+    void WriteShaderGroup(const HgiRayTracingPipelineGroupDesc& group, const std::vector<uint8_t>& shaderHandleStorage, uint32_t shaderHandleIndex, std::vector<uint8_t>& buffer, size_t &strideOut);
 
     HgiVulkanDevice* _device;
     uint64_t _inflightBits;

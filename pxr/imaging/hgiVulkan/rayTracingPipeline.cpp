@@ -167,11 +167,47 @@ uint32_t alignedSize(uint32_t value, uint32_t alignment)
 
 }
 
-void copyAlignedHandle(std::vector<uint8_t>& dst, uint32_t dstIdx, const std::vector<uint8_t>& src, uint32_t srcIdx, const uint32_t handleSizeAligned) {
-    if ((dstIdx + 1) * handleSizeAligned > dst.size())
-        dst.resize((dstIdx + 1) * handleSizeAligned);
+void alignBuffer(std::vector<uint8_t>& dst, uint32_t index,  uint32_t stride) {
+    if ((index + 1) * stride > dst.size())
+        dst.resize((index + 1) * stride);
 
-    memcpy(&dst[dstIdx * handleSizeAligned], &src[srcIdx * handleSizeAligned], handleSizeAligned);
+}
+
+void copyAlignedHandle(std::vector<uint8_t>& dst, uint32_t dstIdx, const std::vector<uint8_t>& src, uint32_t srcIdx, const uint32_t stride) {
+    alignBuffer(dst, dstIdx,stride);
+
+    memcpy(&dst[dstIdx * stride], &src[srcIdx * stride], stride);
+}
+VkDeviceOrHostAddressConstKHR GetBufferAddress(HgiBufferHandle buffer);
+
+
+void HgiVulkanRayTracingPipeline::WriteShaderGroup(const HgiRayTracingPipelineGroupDesc &group , const std::vector<uint8_t>& shaderHandleStorage, uint32_t shaderHandleIndex, std::vector<uint8_t>& buffer, size_t &strideOut) {
+    auto rayTracingPipelineProperties = _device->GetRayTracingPipelineProperties();
+    const uint32_t handleSize = rayTracingPipelineProperties.shaderGroupHandleSize;
+    const uint32_t handleSizeAligned = alignedSize(rayTracingPipelineProperties.shaderGroupHandleSize, rayTracingPipelineProperties.shaderGroupHandleAlignment);
+    uint32_t handleIndex = (buffer.size()/handleSizeAligned);
+    size_t startSize = buffer.size();
+    copyAlignedHandle(buffer, handleIndex++, shaderHandleStorage, shaderHandleIndex, handleSizeAligned);
+    
+    // Copy shader record buffer after the shader handle.
+    if (group.shaderRecordLength) {
+        size_t bufferIndex = buffer.size();
+        buffer.resize(bufferIndex + group.shaderRecordLength);
+        memcpy((void*)&buffer[bufferIndex], group.pShaderRecord, group.shaderRecordLength);
+    }
+
+    size_t endSize = buffer.size();
+    size_t stride = endSize - startSize;
+    if (!strideOut) {
+        strideOut = stride;
+    }
+    else {
+        if (strideOut != stride) {
+            TF_CODING_ERROR("Shader group stride mismatch %d!=%d",
+                stride,
+                strideOut);
+        }
+    }
 }
 
 void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
@@ -187,74 +223,63 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
     std::vector<uint8_t> rayGenShaderHandleStorage;
     std::vector<uint8_t> missShaderHandleStorage;
     std::vector<uint8_t> hitShaderHandleStorage;
-    uint32_t rayGenShaderHandleCount = 0;
-    uint32_t missShaderHandleCount = 0;
-    uint32_t hitShaderHandleCount = 0;
+    size_t rayGenStride=0;
+    size_t missStride = 0;
+    size_t hitStride = 0;
     for (int i = 0; i < _descriptor.groups.size(); i++) {
         if (_descriptor.groups[i].generalShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].generalShader;
             if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
-                copyAlignedHandle(rayGenShaderHandleStorage, rayGenShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                rayGenShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
-                copyAlignedHandle(missShaderHandleStorage, missShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                missShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
-                copyAlignedHandle(hitShaderHandleStorage, hitShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                hitShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
         else if (_descriptor.groups[i].closestHitShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].closestHitShader;
             if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
-                copyAlignedHandle(rayGenShaderHandleStorage, rayGenShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                rayGenShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
-                copyAlignedHandle(missShaderHandleStorage, missShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                missShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
-                copyAlignedHandle(hitShaderHandleStorage, hitShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                hitShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
         else if (_descriptor.groups[i].anyHitShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].anyHitShader;
             if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
-                copyAlignedHandle(rayGenShaderHandleStorage, rayGenShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                rayGenShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
-                copyAlignedHandle(missShaderHandleStorage, missShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                missShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
-                copyAlignedHandle(hitShaderHandleStorage, hitShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                hitShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
         else if (_descriptor.groups[i].intersectionShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].intersectionShader;
             if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
-                copyAlignedHandle(rayGenShaderHandleStorage, rayGenShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                rayGenShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
-                copyAlignedHandle(missShaderHandleStorage, missShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                missShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
             else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
-                copyAlignedHandle(hitShaderHandleStorage, hitShaderHandleCount, shaderHandleStorage, i, handleSizeAligned);
-                hitShaderHandleCount++;
+                WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
+
     }
 
 
@@ -265,6 +290,7 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
     raygenShaderBindingTableBufferDesc.byteSize = rayGenShaderHandleStorage.size();
     raygenShaderBindingTableBufferDesc.initialData = rayGenShaderHandleStorage.data();
     _shaderBindingTable.raygenShaderBindingTable = _pHgi->CreateBuffer(raygenShaderBindingTableBufferDesc);
+    _shaderBindingTable.raygenShaderBindingTableStride = rayGenStride;
 
     HgiBufferDesc missShaderBindingTableBufferDesc;
     missShaderBindingTableBufferDesc.debugName = _descriptor.debugName + " Miss Shader Binding Table";
@@ -272,6 +298,7 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
     missShaderBindingTableBufferDesc.byteSize = missShaderHandleStorage.size();
     missShaderBindingTableBufferDesc.initialData = missShaderHandleStorage.data();
     _shaderBindingTable.missShaderBindingTable = _pHgi->CreateBuffer(missShaderBindingTableBufferDesc);
+    _shaderBindingTable.missShaderBindingTableStride = missStride;
 
     HgiBufferDesc closestHitShaderBindingTableBufferDesc;
     closestHitShaderBindingTableBufferDesc.debugName = _descriptor.debugName + " Hit Shader Binding Table";
@@ -279,7 +306,7 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
     closestHitShaderBindingTableBufferDesc.byteSize = hitShaderHandleStorage.size();;
     closestHitShaderBindingTableBufferDesc.initialData = hitShaderHandleStorage.data();
     _shaderBindingTable.hitShaderBindingTable = _pHgi->CreateBuffer(closestHitShaderBindingTableBufferDesc);
-    _shaderBindingTable.handleSizeAligned = handleSizeAligned;
+    _shaderBindingTable.hitShaderBindingTableStride = hitStride;
 }
 
 

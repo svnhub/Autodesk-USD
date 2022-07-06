@@ -103,18 +103,18 @@ void
     HgiVulkanBuffer* pHitShaderBindingTableBufferVk = (HgiVulkanBuffer*)shaderBindingTable.hitShaderBindingTable.Get();
 
     VkStridedDeviceAddressRegionKHR raygenShaderSbtEntry{};
-    raygenShaderSbtEntry.deviceAddress = pRaygenShaderBindingTableBufferVk->GetDeviceAddress().deviceAddress;
-    raygenShaderSbtEntry.stride = shaderBindingTable.handleSizeAligned;
+    raygenShaderSbtEntry.deviceAddress = pRaygenShaderBindingTableBufferVk->GetDeviceAddress();
+    raygenShaderSbtEntry.stride = shaderBindingTable.raygenShaderBindingTableStride;
     raygenShaderSbtEntry.size = pRaygenShaderBindingTableBufferVk->GetDescriptor().byteSize;
 
     VkStridedDeviceAddressRegionKHR missShaderSbtEntry{};
-    missShaderSbtEntry.deviceAddress = pMissShaderBindingTableBufferVk->GetDeviceAddress().deviceAddress;
-    missShaderSbtEntry.stride = shaderBindingTable.handleSizeAligned;
+    missShaderSbtEntry.deviceAddress = pMissShaderBindingTableBufferVk->GetDeviceAddress();
+    missShaderSbtEntry.stride = shaderBindingTable.missShaderBindingTableStride;
     missShaderSbtEntry.size = pMissShaderBindingTableBufferVk->GetDescriptor().byteSize;
 
     VkStridedDeviceAddressRegionKHR hitShaderSbtEntry{};
-    hitShaderSbtEntry.deviceAddress = pHitShaderBindingTableBufferVk->GetDeviceAddress().deviceAddress;
-    hitShaderSbtEntry.stride = shaderBindingTable.handleSizeAligned;
+    hitShaderSbtEntry.deviceAddress = pHitShaderBindingTableBufferVk->GetDeviceAddress();
+    hitShaderSbtEntry.stride = shaderBindingTable.hitShaderBindingTableStride;
     hitShaderSbtEntry.size = pHitShaderBindingTableBufferVk->GetDescriptor().byteSize;
 
     VkStridedDeviceAddressRegionKHR callableShaderSbtEntry{};

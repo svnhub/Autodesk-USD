@@ -53,7 +53,6 @@ public:
     void PopDebugGroup() override;
 
     HGIVULKAN_API
-        HGI_API
         virtual void Build(HgiAccelerationStructureHandleVector accelStructures, const std::vector<HgiAccelerationStructureBuildRange>& ranges) override;
 
 

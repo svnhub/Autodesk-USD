@@ -32,6 +32,10 @@ HgiBuffer::HgiBuffer(HgiBufferDesc const& desc)
 
 HgiBuffer::~HgiBuffer() = default;
 
+uint64_t HgiBuffer::GetDeviceAddress() const {
+    return 0ull;
+}
+
 HgiBufferDesc const&
 HgiBuffer::GetDescriptor() const
 {
