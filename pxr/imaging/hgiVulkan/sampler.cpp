@@ -62,9 +62,15 @@ HgiVulkanSampler::HgiVulkanSampler(
     sampler.mipmapMode = HgiVulkanConversions::GetMipFilter(desc.mipFilter);
     sampler.minLod = 0.0f;
     sampler.maxLod = FLT_MAX;
-
+#if 0
+    // This check seems to be incorrect, it will return true even when anisotrophy not enabled on device.
     HgiVulkanCapabilities const& caps = device->GetDeviceCapabilities();
     sampler.anisotropyEnable = caps.vkDeviceFeatures.samplerAnisotropy;
+#else
+    // Force to false until issue with capabilities fixed.
+    sampler.anisotropyEnable = VK_FALSE;
+#endif
+
     sampler.maxAnisotropy = sampler.anisotropyEnable ?
         caps.vkDeviceProperties.limits.maxSamplerAnisotropy : 1.0f;
 
