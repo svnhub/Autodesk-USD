@@ -256,6 +256,9 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
     vulkan12Features.bufferDeviceAddress = true;
     vulkan12Features.timelineSemaphore = true;
     vulkan12Features.descriptorIndexing = true;
+    vulkan12Features.runtimeDescriptorArray = true;
+    vulkan12Features.shaderSampledImageArrayNonUniformIndexing = true;
+
     vulkan12Features.pNext = nullptr;// _capabilities->vkDeviceFeatures2.pNext;
 
     VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures;

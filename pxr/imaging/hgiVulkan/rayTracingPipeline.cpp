@@ -196,6 +196,11 @@ void HgiVulkanRayTracingPipeline::WriteShaderGroup(const HgiRayTracingPipelineGr
         memcpy((void*)&buffer[bufferIndex], group.pShaderRecord, group.shaderRecordLength);
     }
 
+    // Pad buffer to ensure correct alignment.
+    while (buffer.size() % handleSizeAligned) {
+        buffer.push_back(0xff);
+    }
+
     size_t endSize = buffer.size();
     size_t stride = endSize - startSize;
     if (!strideOut) {
