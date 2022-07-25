@@ -37,13 +37,13 @@ class HgiVulkanDevice;
 
 using VkDescriptorSetLayoutVector = std::vector<VkDescriptorSetLayout>;
 
-
-
 struct HgiVulkanRayTracingShaderBindingTable {
     HgiBufferHandle raygenShaderBindingTable;
+    size_t raygenShaderBindingTableStride;
     HgiBufferHandle missShaderBindingTable;
+    size_t missShaderBindingTableStride;
     HgiBufferHandle hitShaderBindingTable;
-    size_t handleSizeAligned;
+    size_t hitShaderBindingTableStride;
 };
 
 /// \class HgiVulkanRayTracingPipeline
