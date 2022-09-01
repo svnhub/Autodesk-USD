@@ -104,9 +104,9 @@ public:
 
 protected:
     HGI_API
-        HgiAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) {}
+        HgiAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& /*desc*/) {}
     HGI_API
-        HgiAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& desc) {}
+        HgiAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& /*desc*/ ) {}
 
 private:
     HgiAccelerationStructureGeometry() = delete;

@@ -191,28 +191,28 @@ public:
     /// Create an acceleration structure in rendering backend.
     /// Thread safety: Creation must happen on main thread. See notes above.
     HGI_API
-        virtual HgiAccelerationStructureHandle CreateAccelerationStructure(HgiAccelerationStructureDesc const& desc) { return HgiAccelerationStructureHandle(); }
+        virtual HgiAccelerationStructureHandle CreateAccelerationStructure(HgiAccelerationStructureDesc const& /*desc*/) { return HgiAccelerationStructureHandle(); }
 
     /// Destroyan acceleration structure in rendering backend.
     /// Thread safety: Destruction must happen on main thread. See notes above.
     HGI_API
-        virtual void DestroyAccelerationStructure(HgiAccelerationStructureHandle* accelStructHandle) {};
+        virtual void DestroyAccelerationStructure(HgiAccelerationStructureHandle* /*accelStructHandle*/) {};
 
     /// Create an acceleration structure in rendering backend.
 /// Thread safety: Creation must happen on main thread. See notes above.
     HGI_API
-        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) { return HgiAccelerationStructureGeometryHandle(); }
+        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& /*desc*/) { return HgiAccelerationStructureGeometryHandle(); }
 
 
     /// Create an acceleration structure in rendering backend.
 /// Thread safety: Creation must happen on main thread. See notes above.
     HGI_API
-        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& desc) { return HgiAccelerationStructureGeometryHandle(); }
+        virtual HgiAccelerationStructureGeometryHandle CreateAccelerationStructureGeometry(HgiAccelerationStructureInstanceGeometryDesc const& /*desc*/) { return HgiAccelerationStructureGeometryHandle(); }
 
     /// Destroyan acceleration structure in rendering backend.
     /// Thread safety: Destruction must happen on main thread. See notes above.
     HGI_API
-        virtual void DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* accelStructHandle) {};
+        virtual void DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* /*accelStructHandle*/) {};
 
     /// Create a texture in rendering backend.
     /// Thread safety: Creation must happen on main thread. See notes above.
@@ -326,14 +326,14 @@ public:
     /// Thread safety: Creation must happen on main thread. See notes above.
     HGI_API
         virtual HgiRayTracingPipelineHandle CreateRayTracingPipeline(
-            HgiRayTracingPipelineDesc const& pipeDesc) {
+            HgiRayTracingPipelineDesc const& /*pipeDesc*/) {
         return HgiRayTracingPipelineHandle();
     }
 
     /// Destroy a compute pipeline state object.
     /// Thread safety: Destruction must happen on main thread. See notes above.
     HGI_API
-        virtual void DestroyRayTracingPipeline(HgiRayTracingPipelineHandle* pipeHandle) {}
+        virtual void DestroyRayTracingPipeline(HgiRayTracingPipelineHandle* /*pipeHandle*/) {}
 
     /// Return the name of the api (e.g. "OpenGL").
     /// Thread safety: This call is thread safe.
