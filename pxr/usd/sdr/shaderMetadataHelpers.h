@@ -32,6 +32,9 @@
 #include "pxr/base/tf/token.h"
 #include "pxr/usd/sdr/declare.h"
 
+// When python support is OFF, Linux breaks with missing headers of std::transform and std::find
+// Include algorithm here to avoid multiple including on shaderMetadataHelpers.cpp and shaderNode.cpp
+#include <algorithm>
 #include <limits>
 
 PXR_NAMESPACE_OPEN_SCOPE
