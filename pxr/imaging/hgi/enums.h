@@ -373,7 +373,7 @@ enum HgiShaderStageBits : HgiBits
     HgiShaderStageIntersection = 1 << 12,
     HgiShaderStageCallable = 1 << 13,
 
-    HgiShaderStageCustomBitsBegin        = 1 << 4,
+    HgiShaderStageCustomBitsBegin        = 1 << 14,
 };
 using HgiShaderStage = HgiBits;
 

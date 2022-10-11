@@ -1627,7 +1627,6 @@ def InstallUSD(context, force, buildArgs):
 
         # Make sure to use boost installed by the build script and not any
         # system installed boost
-        extraArgs.append('-DPXR_LIB_PREFIX=')
         extraArgs.append('-DBoost_NO_BOOST_CMAKE=On')
         extraArgs.append('-DBoost_NO_SYSTEM_PATHS=True')
         extraArgs += buildArgs
