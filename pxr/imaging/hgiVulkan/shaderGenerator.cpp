@@ -164,7 +164,7 @@ HgiVulkanShaderGenerator::_WriteConstantParams(
     }
     CreateShaderSection<HgiVulkanBlockShaderSection>(
             "ParamBuffer",
-            parameters, 0));
+            parameters, 0);
 }
 
 void
