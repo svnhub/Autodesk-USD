@@ -232,7 +232,7 @@ HgiInteropVulkan::CompositeToInterop(
         }
     }
 
-    // Convert textures from Vulkan to GL
+    // Convert textures from Vulkan to GL (only convert depth if it exists)
     _ConvertVulkanTextureToOpenGL(_hgiVulkan, color, &_glColorTex);
     if(depth)
         _ConvertVulkanTextureToOpenGL(_hgiVulkan, depth, &_glDepthTex);

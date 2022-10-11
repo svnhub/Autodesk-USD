@@ -1,4 +1,3 @@
-#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgi/accelerationStructure.h"
 //
 // Copyright 2020 Pixar
 //

@@ -30,11 +30,13 @@
     #include "pxr/imaging/hgiMetal/hgi.h"
     #include "pxr/imaging/hgiInterop/metal.h"
 #else
-
+// Include Vulkan headers if vulkan build option option enabled.
 #if defined(PXR_VULKAN_SUPPORT_ENABLED)
     #include "pxr/imaging/hgiVulkan/hgi.h"
     #include "vulkan.h"
 #endif
+
+// Always include opengl (even if vulkan build option enabled)
 #include "pxr/imaging/hgiInterop/opengl.h"
 #endif
 

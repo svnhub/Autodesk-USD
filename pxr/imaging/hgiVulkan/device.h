@@ -1,4 +1,3 @@
-#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgiVulkan/device.h"
 //
 // Copyright 2020 Pixar
 //

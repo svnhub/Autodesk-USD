@@ -64,7 +64,6 @@ public:
     HGI_API
     virtual void PopDebugGroup() = 0;
 
-
     virtual void BindPipeline(HgiRayTracingPipelineHandle pipeline) = 0;
 
     virtual void BindResources(HgiResourceBindingsHandle resources) = 0;

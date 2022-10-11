@@ -2274,7 +2274,7 @@ summaryMsg += """\
     Tests                       {buildTests}
     Examples                    {buildExamples}
     Tutorials                   {buildTutorials}
-    Vulkan                   {buildVulkan}
+    Vulkan                      {buildVulkan}
     Tools                       {buildTools}
     Alembic Plugin              {buildAlembic}
       HDF5 support:             {enableHDF5}

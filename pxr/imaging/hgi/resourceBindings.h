@@ -96,7 +96,7 @@ inline bool operator!=(
 struct HgiBufferBindDesc
 {
     HGI_API
-        HgiBufferBindDesc();
+    HgiBufferBindDesc();
 
     HgiBufferHandleVector buffers;
     std::vector<uint32_t> offsets;
@@ -142,7 +142,7 @@ inline bool operator!=(
 struct HgiTextureBindDesc
 {
     HGI_API
-        HgiTextureBindDesc();
+    HgiTextureBindDesc();
 
     HgiTextureHandleVector textures;
     HgiSamplerHandleVector samplers;
@@ -176,7 +176,7 @@ bool operator!=(
 struct HgiResourceBindingsDesc
 {
     HGI_API
-        HgiResourceBindingsDesc();
+    HgiResourceBindingsDesc();
 
     std::string debugName;
     HgiAccelerationStructureBindDescVector accelerationStructures;
@@ -205,15 +205,15 @@ class HgiResourceBindings
 {
 public:
     HGI_API
-        virtual ~HgiResourceBindings();
+    virtual ~HgiResourceBindings();
 
     /// The descriptor describes the object.
     HGI_API
-        HgiResourceBindingsDesc const& GetDescriptor() const;
+    HgiResourceBindingsDesc const& GetDescriptor() const;
 
 protected:
     HGI_API
-        HgiResourceBindings(HgiResourceBindingsDesc const& desc);
+    HgiResourceBindings(HgiResourceBindingsDesc const& desc);
 
     HgiResourceBindingsDesc _descriptor;
 

@@ -35,6 +35,10 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+// The following code is based on Vulkan VMA code (which does not support the newer buffer types)
+// TODO: Remove this when the new buffer types are supported in VMA.
+
+// Get result of Vulkan 
 #define VK_CHECK_RESULT(f)																				\
 {																										\
 	VkResult res = (f);																					\
@@ -45,7 +49,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 	}																									\
 }
 
-
+// Get memory type index from Vk memory properties
 uint32_t getMemoryType(uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& memoryProperties, VkMemoryPropertyFlags properties, VkBool32* memTypeFound=nullptr)
 {
     for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
@@ -75,10 +79,9 @@ uint32_t getMemoryType(uint32_t typeBits, const VkPhysicalDeviceMemoryProperties
     }
 }
 
-
+// Allocate buffer directly (not using VMA library)
 void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, const void* data)
 {
-
     VkDevice device = _device->GetVulkanDevice();
 
     VkMemoryAllocateInfo memAlloc{};
@@ -100,7 +103,7 @@ void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo,
         memAlloc.pNext = &allocFlagsInfo;
     }
     VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &_vkDeviceMemory));
-#if 1
+
     // If a pointer to the buffer data has been passed, map the buffer and copy over the data
     if (data != nullptr)
     {
@@ -120,10 +123,8 @@ void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo,
         }
         vkUnmapMemory(device, _vkDeviceMemory);
     }
-#endif
 
     VK_CHECK_RESULT(vkBindBufferMemory(device, _vkBuffer, _vkDeviceMemory, 0));
-
 }
 
 
@@ -168,7 +169,6 @@ HgiVulkanBuffer::HgiVulkanBuffer(
         ai.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // GPU efficient
 
         VkResult createRes = vmaCreateBuffer(vma, &bi, &ai, &_vkBuffer, &_vmaAllocation, 0);
-        std::cout << "Create res:" << createRes << std::endl;
         TF_VERIFY(
             createRes == VK_SUCCESS
         );

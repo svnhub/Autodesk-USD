@@ -1,5 +1,3 @@
-#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgiVulkan/buffer.h"
-#line 1 "C:/Users/morgang/github/autodesk/USD/pxr/imaging/hgiVulkan/buffer.h"
 //
 // Copyright 2020 Pixar
 //
