@@ -390,12 +390,16 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
         }
         limit -= 1;
 
-        // Each texture can be an array of textures
-        for (size_t i=0; i< texDesc.textures.size(); i++) {
-            HgiTextureHandle const& texHandle = texDesc.textures[i];
-            HgiVulkanTexture* tex =
-                static_cast<HgiVulkanTexture*>(texHandle.Get());
-            if (!TF_VERIFY(tex)) continue;
+        // Each texture can be an array of textures and samplers.
+        size_t descriptorCount = std::max(texDesc.textures.size(), texDesc.samplers.size());
+        for (size_t i=0; i< descriptorCount; i++) {
+
+            HgiVulkanTexture* tex = nullptr;
+            if (i < texDesc.textures.size()) {
+                const HgiTextureHandle& texHandle = texDesc.textures[i];
+                tex = static_cast<HgiVulkanTexture*>(texHandle.Get());
+                if (!TF_VERIFY(tex)) continue;
+            }
 
             // Not having a sampler is ok only for StorageImage.
             HgiVulkanSampler* smp = nullptr;
@@ -406,14 +410,16 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
 
             VkDescriptorImageInfo imageInfo;
             imageInfo.sampler = smp ? smp->GetVulkanSampler() : nullptr;
-            imageInfo.imageLayout = tex->GetImageLayout();
-            imageInfo.imageView = tex->GetImageView();
+            imageInfo.imageLayout = tex ? tex->GetImageLayout() : VK_IMAGE_LAYOUT_UNDEFINED;
+            imageInfo.imageView = tex ? tex->GetImageView() : nullptr;
             imageInfos.push_back(std::move(imageInfo));
         }
     }
 
     size_t texInfoOffset = 0;
     for (HgiTextureBindDesc const& texDesc : desc.textures) {
+        size_t descriptorCount = std::max(texDesc.textures.size(), texDesc.samplers.size());
+
         // For dstBinding we must provided an index in descriptor set.
         // Must be one of the bindings specified in VkDescriptorSetLayoutBinding
         VkWriteDescriptorSet writeSet= {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET};
@@ -421,7 +427,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
             (uint32_t) writeSets.size() :
             texDesc.bindingIndex;
         writeSet.dstArrayElement = 0;
-        writeSet.descriptorCount = (uint32_t) texDesc.textures.size(); // 0 ok
+        writeSet.descriptorCount = (uint32_t)descriptorCount;
         writeSet.dstSet = _vkDescriptorSet;
         writeSet.pBufferInfo = nullptr;
         writeSet.pImageInfo = imageInfos.data() + texInfoOffset;
@@ -429,7 +435,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
         writeSet.descriptorType =
             HgiVulkanConversions::GetDescriptorType(texDesc.resourceType);
         writeSets.push_back(std::move(writeSet));
-        texInfoOffset += texDesc.textures.size();
+        texInfoOffset += descriptorCount;
     }
 
     // Note: this update is immediate. It is not recorded via a command.
