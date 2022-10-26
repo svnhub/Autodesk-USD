@@ -139,9 +139,10 @@ public:
     /// For example on Linux this may return HgiGL while on macOS HgiMetal.
     /// Caller, usually the application, owns the lifetime of the Hgi object and
     /// the object is destroyed when the caller drops the unique ptr.
+    /// If requirements is non-zero an attempt will be made to provide a Hgi object supporting those capabilities.
     /// Thread safety: Not thread safe.
     HGI_API
-    static HgiUniquePtr CreatePlatformDefaultHgi();
+    static HgiUniquePtr CreatePlatformDefaultHgi(HgiDeviceCapabilities requirements = 0);
 
     /// Determine if Hgi instance can run on current hardware.
     /// Thread safety: This call is thread safe.

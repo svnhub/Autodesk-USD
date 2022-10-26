@@ -57,7 +57,7 @@ Hgi::SubmitCmds(HgiCmds* cmds, HgiSubmitWaitType wait)
 }
 
 static Hgi*
-_MakeNewPlatformDefaultHgi()
+_MakeNewPlatformDefaultHgi(HgiDeviceCapabilities requirements)
 {
     // We use the plugin system to construct derived Hgi classes to avoid any
     // linker complications.
@@ -77,7 +77,8 @@ _MakeNewPlatformDefaultHgi()
             return nullptr;
         #endif
 
-    if (TfGetEnvSetting(HGI_ENABLE_VULKAN)) {
+    // Vulkan backend requires HGI_ENABLE_VULKAN environment variable or HgiDeviceCapabilitiesBitsRayTracing set in requirements.
+    if ((requirements & HgiDeviceCapabilitiesBitsRayTracing) || TfGetEnvSetting(HGI_ENABLE_VULKAN)) {
         #if defined(PXR_VULKAN_SUPPORT_ENABLED)
             hgiType = "HgiVulkan";
         #else
@@ -119,13 +120,13 @@ Hgi::GetPlatformDefaultHgi()
     TF_WARN("GetPlatformDefaultHgi is deprecated. "
             "Please use CreatePlatformDefaultHgi");
 
-    return _MakeNewPlatformDefaultHgi();
+    return _MakeNewPlatformDefaultHgi(0);
 }
 
 HgiUniquePtr
-Hgi::CreatePlatformDefaultHgi()
+Hgi::CreatePlatformDefaultHgi(HgiDeviceCapabilities requirements)
 {
-    return HgiUniquePtr(_MakeNewPlatformDefaultHgi());
+    return HgiUniquePtr(_MakeNewPlatformDefaultHgi(requirements));
 }
 
 bool

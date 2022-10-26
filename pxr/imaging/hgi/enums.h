@@ -72,6 +72,9 @@ using HgiBits = uint32_t;
 /// <li>HgiDeviceCapabilitiesBitsBasePrimitiveOffset:
 ///   The device requires workaround for base primitive offset</li>
 /// </ul>
+/// <li>HgiDeviceCapabilitiesBitsRayTracing:
+///   The device supports ray tracing</li>
+/// </ul>
 ///
 enum HgiDeviceCapabilitiesBits : HgiBits
 {
@@ -91,6 +94,7 @@ enum HgiDeviceCapabilitiesBits : HgiBits
     HgiDeviceCapabilitiesBitsCustomDepthRange        = 1 << 13,
     HgiDeviceCapabilitiesBitsMetalTessellation       = 1 << 14,
     HgiDeviceCapabilitiesBitsBasePrimitiveOffset     = 1 << 15,
+    HgiDeviceCapabilitiesBitsRayTracing              = 1 << 16,
 };
 
 using HgiDeviceCapabilities = HgiBits;
