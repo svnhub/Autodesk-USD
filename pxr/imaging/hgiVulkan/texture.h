@@ -155,6 +155,7 @@ private:
     uint64_t _inflightBits;
     HgiVulkanBuffer* _stagingBuffer;
     void* _cpuStagingAddress;
+    bool _optimalTiling;
 };
 
 
