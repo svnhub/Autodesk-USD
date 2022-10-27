@@ -160,13 +160,15 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
     // Textures
 
     for (HgiTextureBindDesc const& t : desc.textures) {
+        // Descriptor count made of textures and samplers.
+        size_t descriptorCount = std::max(t.textures.size(), t.samplers.size());
         VkDescriptorSetLayoutBinding d = {};
         uint32_t bi = reorder ? (uint32_t) bindings.size() : t.bindingIndex;
         d.binding = bi; // binding number in shader stage
         d.descriptorType =
             HgiVulkanConversions::GetDescriptorType(t.resourceType);
         poolSizes[t.resourceType].descriptorCount++;
-        d.descriptorCount = (uint32_t) t.textures.size();
+        d.descriptorCount = descriptorCount;
         d.stageFlags = HgiVulkanConversions::GetShaderStages(t.stageUsage);
         d.pImmutableSamplers = nullptr;
         bindings.push_back(std::move(d));
@@ -411,7 +413,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
             VkDescriptorImageInfo imageInfo;
             imageInfo.sampler = smp ? smp->GetVulkanSampler() : nullptr;
             imageInfo.imageLayout = tex ? tex->GetImageLayout() : VK_IMAGE_LAYOUT_UNDEFINED;
-            imageInfo.imageView = tex ? tex->GetImageView() : nullptr;
+            imageInfo.imageView = tex ? tex->GetImageView() : VK_NULL_HANDLE;
             imageInfos.push_back(std::move(imageInfo));
         }
     }
