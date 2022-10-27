@@ -83,7 +83,7 @@ _FormatTable[HgiFormatCount][2] =
     {HgiFormatInt32Vec2,      VK_FORMAT_R32G32_SINT},
     {HgiFormatInt32Vec3,      VK_FORMAT_R32G32B32_SINT},
     {HgiFormatInt32Vec4,      VK_FORMAT_R32G32B32A32_SINT},
-    {HgiFormatUNorm8Vec4srgb, VK_FORMAT_R8G8B8_SRGB},
+    {HgiFormatUNorm8Vec4srgb, VK_FORMAT_R8G8B8A8_SRGB},
     {HgiFormatBC6FloatVec3,   VK_FORMAT_BC6H_SFLOAT_BLOCK},
     {HgiFormatBC6UFloatVec3,  VK_FORMAT_BC6H_UFLOAT_BLOCK},
     {HgiFormatBC7UNorm8Vec4,  VK_FORMAT_BC7_UNORM_BLOCK},
