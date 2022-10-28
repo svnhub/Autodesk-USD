@@ -49,9 +49,13 @@ _CheckFormatSupport(
         imageCreateInfo.tiling,
         imageCreateInfo.usage,
         imageCreateInfo.flags, &imgProps);
-    return valid = VK_SUCCESS;
+    return valid == VK_SUCCESS;
 
 
+}
+
+static bool isSRGBFormat(VkFormat format) {
+    return format == VK_FORMAT_B8G8R8A8_SRGB || format == VK_FORMAT_R8G8B8A8_SRGB || format== VK_FORMAT_A8B8G8R8_SRGB_PACK32;
 }
 
 HgiVulkanTexture::HgiVulkanTexture(
@@ -110,8 +114,8 @@ HgiVulkanTexture::HgiVulkanTexture(
     imageCreateInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT |
         VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
-    // Set STORAGE_IMAGE usage bit, only if optimal tiling supported
-    if (_optimalTiling) {
+    // Set STORAGE_IMAGE usage bit, only if optimal tiling supported and texture format is not sRGB.
+    if (_optimalTiling && !isSRGBFormat(imageCreateInfo.format)) {
 
         // XXX STORAGE_IMAGE requires VK_IMAGE_USAGE_STORAGE_BIT, but Hgi
         // doesn't tell us if a texture will be used as image load/store.
