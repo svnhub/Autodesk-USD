@@ -29,6 +29,8 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
+#define MAX_IN_FLIGHT_COMMAND_BUFFER_COUNT 64
+
 static HgiVulkanCommandQueue::HgiVulkan_CommandPool*
 _CreateCommandPool(HgiVulkanDevice* device)
 {
@@ -198,7 +200,7 @@ HgiVulkanCommandQueue::AcquireCommandBuffer()
 
     // Acquire an unique id for this cmd buffer amongst inflight cmd buffers.
     uint8_t inflightId = _AcquireInflightIdBit();
-    _SetInflightBit(inflightId, /*enabled*/ true);
+    _SetInflightBit(pool, inflightId, /*enabled*/ true);
 
     // Begin recording to ensure the caller has exclusive access to cmd buffer.
     cmdBuf->BeginCommandBuffer(inflightId);
@@ -247,7 +249,7 @@ HgiVulkanCommandQueue::ResetConsumedCommandBuffers()
         HgiVulkan_CommandPool* pool = it.second;
         for (HgiVulkanCommandBuffer* cb : pool->commandBuffers) {
             if (cb->ResetIfConsumedByGPU()) {
-                _SetInflightBit(cb->GetInflightId(), /*enabled*/ false);
+                _SetInflightBit(pool, cb->GetInflightId(), /*enabled*/ false);
             }
         }
     }
@@ -280,12 +282,12 @@ HgiVulkanCommandQueue::_AcquireInflightIdBit()
     // all bits have been used once. These means we can track the in-flight
     // status of up to 64 consecutive command buffer usages.
     // This becomes important in garbage collection and is explained more there.
-    return _inflightCounter.fetch_add(1) % 64;
+    return _inflightCounter.fetch_add(1) % MAX_IN_FLIGHT_COMMAND_BUFFER_COUNT;
 }
 
 /* Multi threaded */
 void
-HgiVulkanCommandQueue::_SetInflightBit(uint8_t id, bool enabled)
+HgiVulkanCommandQueue::_SetInflightBit(HgiVulkan_CommandPool* pool, uint8_t id, bool enabled)
 {
     // We need to set the bit atomically since this function can be called by
     // multiple threads. Try to set the value and if it fails (another thread
@@ -300,6 +302,28 @@ HgiVulkanCommandQueue::_SetInflightBit(uint8_t id, bool enabled)
         while (!_inflightBits.compare_exchange_weak(
             expect, expect | (1ULL<<id))) 
         {
+            // Get the fence objects for any in-flight buffers in this thread's pool with this ID.
+            std::vector<VkFence> fences;
+            for (HgiVulkanCommandBuffer* cb : pool->commandBuffers) {
+                if (cb->IsInFlight() && cb->GetInflightId()==id) {
+                    fences.push_back(cb->GetVulkanFence());
+                }
+            }
+
+            // Wait for the fences.
+            if (fences.size()) {
+                static const uint64_t timeOut = 1000000;
+                vkWaitForFences(_device->GetVulkanDevice(), fences.size(), fences.data(), VK_TRUE, timeOut);
+            }
+
+            // Reset the consumed buffers after waiting.
+            for (HgiVulkanCommandBuffer* cb : pool->commandBuffers) {
+                if (cb->ResetIfConsumedByGPU()) {
+                    _SetInflightBit(pool, cb->GetInflightId(), /*enabled*/ false);
+                }
+            }
+
+            // Clear all the bit and try again.
             expect &= ~(1ULL<<id);
         }
     } else {
