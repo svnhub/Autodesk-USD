@@ -356,6 +356,8 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
     allocatorInfo.instance = instance->GetVulkanInstance();
     allocatorInfo.physicalDevice = _vkPhysicalDevice;
     allocatorInfo.device = _vkDevice;
+    allocatorInfo.flags |= VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+
     if (dedicatedAllocations) {
         allocatorInfo.flags |=VMA_ALLOCATOR_CREATE_KHR_DEDICATED_ALLOCATION_BIT;
     }

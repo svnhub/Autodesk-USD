@@ -31,101 +31,8 @@
 #include "pxr/imaging/hgiVulkan/diagnostic.h"
 #include "pxr/imaging/hgiVulkan/garbageCollector.h"
 #include "pxr/imaging/hgiVulkan/hgi.h"
-#include <iostream>
 
 PXR_NAMESPACE_OPEN_SCOPE
-
-// The following code is based on Vulkan VMA code (which does not support the newer buffer types)
-// TODO: Remove this when the new buffer types are supported in VMA.
-
-// Get result of Vulkan 
-#define VK_CHECK_RESULT(f)																				\
-{																										\
-	VkResult res = (f);																					\
-	if (res != VK_SUCCESS)																				\
-	{																									\
-		std::cout << "Fatal : VkResult is \"" << std::to_string(res) << "\" in " << __FILE__ << " at line " << __LINE__ << "\n"; \
-		assert(res == VK_SUCCESS);																		\
-	}																									\
-}
-
-// Get memory type index from Vk memory properties
-uint32_t getMemoryType(uint32_t typeBits, const VkPhysicalDeviceMemoryProperties& memoryProperties, VkMemoryPropertyFlags properties, VkBool32* memTypeFound=nullptr)
-{
-    for (uint32_t i = 0; i < memoryProperties.memoryTypeCount; i++)
-    {
-        if ((typeBits & 1) == 1)
-        {
-            if ((memoryProperties.memoryTypes[i].propertyFlags & properties) == properties)
-            {
-                if (memTypeFound)
-                {
-                    *memTypeFound = true;
-                }
-                return i;
-            }
-        }
-        typeBits >>= 1;
-    }
-
-    if (memTypeFound)
-    {
-        *memTypeFound = false;
-        return 0;
-    }
-    else
-    {
-        throw std::runtime_error("Could not find a matching memory type");
-    }
-}
-
-// Allocate buffer directly (not using VMA library)
-void HgiVulkanBuffer::allocateDirect(const VkBufferCreateInfo &bufferCreateInfo, VkMemoryPropertyFlags memoryPropertyFlags, VkDeviceSize size, const void* data)
-{
-    VkDevice device = _device->GetVulkanDevice();
-
-    VkMemoryAllocateInfo memAlloc{};
-    memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-
-    VK_CHECK_RESULT(vkCreateBuffer(device, &bufferCreateInfo, nullptr, &_vkBuffer));
-
-    // Create the memory backing up the buffer handle
-    VkMemoryRequirements memReqs;
-    vkGetBufferMemoryRequirements(device, _vkBuffer, &memReqs);
-    memAlloc.allocationSize = memReqs.size;
-    // Find a memory type index that fits the properties of the buffer
-    memAlloc.memoryTypeIndex = getMemoryType(memReqs.memoryTypeBits, _device->GetDeviceCapabilities().vkMemoryProperties, memoryPropertyFlags);
-    // If the buffer has VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT set we also need to enable the appropriate flag during allocation
-    VkMemoryAllocateFlagsInfoKHR allocFlagsInfo{};
-    if (bufferCreateInfo.usage & VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT) {
-        allocFlagsInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_FLAGS_INFO_KHR;
-        allocFlagsInfo.flags = VK_MEMORY_ALLOCATE_DEVICE_ADDRESS_BIT_KHR;
-        memAlloc.pNext = &allocFlagsInfo;
-    }
-    VK_CHECK_RESULT(vkAllocateMemory(device, &memAlloc, nullptr, &_vkDeviceMemory));
-
-    // If a pointer to the buffer data has been passed, map the buffer and copy over the data
-    if (data != nullptr)
-    {
-        void* mapped;
-        VK_CHECK_RESULT(vkMapMemory(device, _vkDeviceMemory, 0, size, 0, &mapped));
-        memcpy(mapped, data, size);
-        // If host coherency hasn't been requested, do a manual flush to make writes visible
-        if ((memoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
-        {
-            VkMappedMemoryRange mappedRange{};
-            mappedRange.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-            mappedRange.memory = _vkDeviceMemory;
-            mappedRange.offset = 0;
-            mappedRange.size = size;
-
-            vkFlushMappedMemoryRanges(device, 1, &mappedRange);
-        }
-        vkUnmapMemory(device, _vkDeviceMemory);
-    }
-
-    VK_CHECK_RESULT(vkBindBufferMemory(device, _vkBuffer, _vkDeviceMemory, 0));
-}
 
 
 HgiVulkanBuffer::HgiVulkanBuffer(
@@ -145,60 +52,24 @@ HgiVulkanBuffer::HgiVulkanBuffer(
         return;
     }
 
+    VmaAllocator vma = device->GetVulkanMemoryAllocator();
 
     VkBufferCreateInfo bi = {VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO};
     bi.size = desc.byteSize;
     bi.usage = HgiVulkanConversions::GetBufferUsage(desc.usage);
     bi.sharingMode = VK_SHARING_MODE_EXCLUSIVE; // gfx queue only
 
-    bool cannotUseVMA = (desc.usage & HgiBufferUsageRayTracingExtensions);
-    if (cannotUseVMA) {
-        uint32_t memoryProperties = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    // Create buffer with memory allocated and bound.
+    // Equivalent to: vkCreateBuffer, vkAllocateMemory, vkBindBufferMemory
+    // XXX On VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU it may be beneficial to
+    // skip staging buffers and use DEVICE_LOCAL | HOST_VISIBLE_BIT since all
+    // memory is shared between CPU and GPU.
+    VmaAllocationCreateInfo ai = {};
+    ai.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // GPU efficient
 
-        allocateDirect(bi, memoryProperties, desc.byteSize, desc.initialData);
-    }
-    else
-    {
-        VmaAllocator vma = device->GetVulkanMemoryAllocator();
-        // Create buffer with memory allocated and bound.
-        // Equivalent to: vkCreateBuffer, vkAllocateMemory, vkBindBufferMemory
-        // XXX On VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU it may be beneficial to
-        // skip staging buffers and use DEVICE_LOCAL | HOST_VISIBLE_BIT since all
-        // memory is shared between CPU and GPU.
-        VmaAllocationCreateInfo ai = {};
-        ai.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT; // GPU efficient
-
-        VkResult createRes = vmaCreateBuffer(vma, &bi, &ai, &_vkBuffer, &_vmaAllocation, 0);
-        TF_VERIFY(
-            createRes == VK_SUCCESS
-        );
-
-        if (desc.initialData) {
-            // Use a 'staging buffer' to schedule uploading the 'initialData' to
-            // the device-local GPU buffer.
-            HgiVulkanBuffer* stagingBuffer = CreateStagingBuffer(_device, desc);
-            VkBuffer vkStagingBuf = stagingBuffer->GetVulkanBuffer();
-
-            HgiVulkanCommandQueue* queue = device->GetCommandQueue();
-            HgiVulkanCommandBuffer* cb = queue->AcquireResourceCommandBuffer();
-            VkCommandBuffer vkCmdBuf = cb->GetVulkanCommandBuffer();
-
-            // Copy data from staging buffer to device-local buffer.
-            VkBufferCopy copyRegion = {};
-            copyRegion.srcOffset = 0;
-            copyRegion.dstOffset = 0;
-            copyRegion.size = desc.byteSize;
-            vkCmdCopyBuffer(vkCmdBuf, vkStagingBuf, _vkBuffer, 1, &copyRegion);
-
-            // We don't know if this buffer is a static (immutable) or
-            // dynamic (animated) buffer. We assume that most buffers are
-            // static and schedule garbage collection of staging resource.
-            HgiBufferHandle stagingHandle(stagingBuffer, 0);
-            hgi->TrashObject(
-                &stagingHandle,
-                hgi->GetGarbageCollector()->GetBufferList());
-        }
-    }
+    TF_VERIFY(
+        vmaCreateBuffer(vma,&bi,&ai,&_vkBuffer,&_vmaAllocation,0) == VK_SUCCESS
+    );
 
     // Debug label
     if (!_descriptor.debugName.empty()) {
@@ -208,6 +79,32 @@ HgiVulkanBuffer::HgiVulkanBuffer(
             (uint64_t)_vkBuffer,
             VK_OBJECT_TYPE_BUFFER,
             debugLabel.c_str());
+    }
+
+    if (desc.initialData) {
+        // Use a 'staging buffer' to schedule uploading the 'initialData' to
+        // the device-local GPU buffer.
+        HgiVulkanBuffer* stagingBuffer = CreateStagingBuffer(_device, desc);
+        VkBuffer vkStagingBuf = stagingBuffer->GetVulkanBuffer();
+
+        HgiVulkanCommandQueue* queue = device->GetCommandQueue();
+        HgiVulkanCommandBuffer* cb = queue->AcquireResourceCommandBuffer();
+        VkCommandBuffer vkCmdBuf = cb->GetVulkanCommandBuffer();
+
+        // Copy data from staging buffer to device-local buffer.
+        VkBufferCopy copyRegion = {};
+        copyRegion.srcOffset = 0;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = desc.byteSize;
+        vkCmdCopyBuffer(vkCmdBuf, vkStagingBuf, _vkBuffer, 1, &copyRegion);
+
+        // We don't know if this buffer is a static (immutable) or
+        // dynamic (animated) buffer. We assume that most buffers are
+        // static and schedule garbage collection of staging resource.
+        HgiBufferHandle stagingHandle(stagingBuffer, 0);
+        hgi->TrashObject(
+            &stagingHandle,
+            hgi->GetGarbageCollector()->GetBufferList());
     }
 
     _descriptor.initialData = nullptr;
@@ -327,8 +224,8 @@ uint64_t HgiVulkanBuffer::GetDeviceAddress() const
     return _device->vkGetBufferDeviceAddressKHR(_device->GetVulkanDevice(), &bufferDeviceAI);
 }
 
-
-HgiVulkanBuffer* HgiVulkanBuffer::CreateStagingBuffer(
+HgiVulkanBuffer*
+HgiVulkanBuffer::CreateStagingBuffer(
     HgiVulkanDevice* device,
     HgiBufferDesc const& desc)
 {
