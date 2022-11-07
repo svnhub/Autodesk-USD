@@ -35,7 +35,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(
     Hgi *pHgi,
     HgiVulkanDevice* device,
-    HgiAccelerationStructureTriangleGeometryDesc const& desc) : HgiAccelerationStructureGeometry(desc) {
+    HgiAccelerationStructureTriangleGeometryDesc const& desc) : HgiAccelerationStructureGeometry(desc),_device(device) {
     _accelerationStructureGeometry = {};
     _accelerationStructureGeometry.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR;
     _accelerationStructureGeometry.flags = HgiVulkanConversions::GetAccelerationStructureGeometryFlags(desc.flags);
@@ -54,9 +54,13 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(
     _primitiveCount = desc.count;
 }
 
+HgiVulkanAccelerationStructureGeometry::~HgiVulkanAccelerationStructureGeometry() {
+    // This is called from inside garbage collector, so can just call delete on buffer pointer.
+    delete _instancesBuffer.Get();
+}
 
 HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(Hgi* pHgi,
-    HgiVulkanDevice* device, HgiAccelerationStructureInstanceGeometryDesc const& desc) : HgiAccelerationStructureGeometry(desc) {
+    HgiVulkanDevice* device, HgiAccelerationStructureInstanceGeometryDesc const& desc) : HgiAccelerationStructureGeometry(desc), _device(device) {
 
     std::vector<VkAccelerationStructureInstanceKHR> instances; 
     instances.resize(desc.instances.size());
@@ -81,7 +85,7 @@ HgiVulkanAccelerationStructureGeometry::HgiVulkanAccelerationStructureGeometry(H
 
     HgiBufferDesc instancesBufferDesc;
     instancesBufferDesc.debugName = desc.debugName + "InstancesBuffer";
-    instancesBufferDesc.usage = HgiBufferUsageAccelerationStructureBuildInputReadOnly | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    instancesBufferDesc.usage = HgiBufferUsageAccelerationStructureBuildInputReadOnly | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress;
     instancesBufferDesc.initialData = &instances[0];
     instancesBufferDesc.byteSize = instances.size()*sizeof(instances[0]);
     _instancesBuffer = pHgi->CreateBuffer(instancesBufferDesc);
@@ -137,7 +141,7 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
 
     HgiBufferDesc accelBufferDesc;
     accelBufferDesc.debugName = _descriptor.debugName + "AccelerationStructureBuffer";
-    accelBufferDesc.usage = HgiBufferUsageAccelerationStructureStorage | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    accelBufferDesc.usage = HgiBufferUsageAccelerationStructureStorage | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress;
     accelBufferDesc.initialData = nullptr;
     accelBufferDesc.byteSize = _buildSizesInfo.accelerationStructureSize;
     _accelStructureBuffer = pHgi->CreateBuffer(accelBufferDesc);
@@ -153,7 +157,7 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
 
     HgiBufferDesc scratchBufferDesc;
     scratchBufferDesc.debugName = _descriptor.debugName + "ScratchBuffer";
-    scratchBufferDesc.usage = HgiBufferUsageStorage | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    scratchBufferDesc.usage = HgiBufferUsageStorage | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress;
     scratchBufferDesc.initialData = nullptr;
     scratchBufferDesc.byteSize = _buildSizesInfo.buildScratchSize;
     _scratchBuffer = pHgi->CreateBuffer(scratchBufferDesc);
@@ -162,11 +166,15 @@ HgiVulkanAccelerationStructure::HgiVulkanAccelerationStructure(
     _buildGeomInfo.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR;
     _buildGeomInfo.dstAccelerationStructure = _accelerationStructure;
     _buildGeomInfo.scratchData.deviceAddress = pScratchBufferVk->GetDeviceAddress();
-
-   
-
-
 }
 
+HgiVulkanAccelerationStructure::~HgiVulkanAccelerationStructure() {
+    // This is called from inside garbage collector, so can just call delete on buffer pointer.
+    delete _scratchBuffer.Get();
+    delete _accelStructureBuffer.Get();
+
+    _device->vkDestroyAccelerationStructureKHR(_device->GetVulkanDevice(), _accelerationStructure,
+        HgiVulkanAllocator());
+}
 
 PXR_NAMESPACE_CLOSE_SCOPE

@@ -47,13 +47,23 @@ class HgiVulkanAccelerationStructureGeometry : public HgiAccelerationStructureGe
 {
 public:
     HGIVULKAN_API
-        virtual ~HgiVulkanAccelerationStructureGeometry() {}
+        virtual ~HgiVulkanAccelerationStructureGeometry();
 
     VkAccelerationStructureGeometryKHR* GetVulkanGeometry() {
         return &_accelerationStructureGeometry;
     }
 
     uint32_t GetPrimitiveCount() { return _primitiveCount;  }
+
+    /// Returns the device used to create this object.
+    HGIVULKAN_API
+        HgiVulkanDevice* GetDevice() const { return _device; }
+
+    /// Returns the (writable) inflight bits of when this object was trashed.
+    HGIVULKAN_API
+        uint64_t& GetInflightBits() {
+        return _inflightBits;
+    }
 
 protected:
     friend class HgiVulkan;
@@ -67,6 +77,9 @@ protected:
 
 
 private:
+    HgiVulkanDevice* _device;
+    uint64_t _inflightBits;
+
     HgiVulkanAccelerationStructureGeometry() = delete;
     HgiVulkanAccelerationStructureGeometry& operator=(const HgiVulkanAccelerationStructureGeometry&) = delete;
     HgiVulkanAccelerationStructureGeometry(const HgiVulkanAccelerationStructureGeometry&) = delete;
@@ -87,7 +100,7 @@ class HgiVulkanAccelerationStructure : public HgiAccelerationStructure
 {
 public:
     HGIVULKAN_API
-        virtual ~HgiVulkanAccelerationStructure() {}
+        virtual ~HgiVulkanAccelerationStructure();
 
     /// This function returns the handle to the Hgi backend's gpu resource, cast
     /// to a uint64_t. Clients should avoid using this function and instead

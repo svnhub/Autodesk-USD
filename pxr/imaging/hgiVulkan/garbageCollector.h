@@ -59,6 +59,8 @@ using HgiVulkanRayTracingPipelineVector =
 std::vector<class HgiVulkanRayTracingPipeline*>;
 using HgiVulkanAccelerationStructureVector =
 std::vector<class HgiVulkanAccelerationStructure*>;
+using HgiVulkanAccelerationStructureGeometryVector =
+std::vector<class HgiVulkanAccelerationStructureGeometry*>;
 
 
 /// \class HgiVulkanGarbageCollector
@@ -93,6 +95,7 @@ public:
     HgiVulkanGraphicsPipelineVector* GetGraphicsPipelineList();
     HgiVulkanComputePipelineVector* GetComputePipelineList();
     HgiVulkanAccelerationStructureVector* GetAccelerationStructureList();
+    HgiVulkanAccelerationStructureGeometryVector* GetAccelerationStructureGeometryList();
     HgiVulkanRayTracingPipelineVector* GetRayTracingPipelineList();
 
 private:
@@ -121,6 +124,7 @@ private:
     static std::vector<HgiVulkanGraphicsPipelineVector*> _graphicsPipelineList;
     static std::vector<HgiVulkanComputePipelineVector*> _computePipelineList;
     static std::vector<HgiVulkanAccelerationStructureVector*> _accelerationStructureList;
+    static std::vector<HgiVulkanAccelerationStructureVector*> _accelerationStructureGeometryList;
     static std::vector<HgiVulkanRayTracingPipelineVector*> _rayTracingPipelineList;
 
     bool _isDestroying;

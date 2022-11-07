@@ -404,6 +404,7 @@ HgiAccelerationStructureHandle HgiVulkan::CreateAccelerationStructure(HgiAcceler
 }
 
 void HgiVulkan::DestroyAccelerationStructure(HgiAccelerationStructureHandle* accelStructHandle) {
+    TrashObject(accelStructHandle, GetGarbageCollector()->GetAccelerationStructureList());
 }
 
 HgiAccelerationStructureGeometryHandle HgiVulkan::CreateAccelerationStructureGeometry(HgiAccelerationStructureTriangleGeometryDesc const& desc) {
@@ -419,7 +420,7 @@ HgiAccelerationStructureGeometryHandle HgiVulkan::CreateAccelerationStructureGeo
 }
 
 void HgiVulkan::DestroyAccelerationStructureGeometry(HgiAccelerationStructureGeometryHandle* accelStructHandle) {
-    delete accelStructHandle->Get();
+    TrashObject(accelStructHandle, GetGarbageCollector()->GetAccelerationStructureGeometryList());
 }
 
 

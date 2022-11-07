@@ -128,6 +128,27 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
 
 HgiVulkanRayTracingPipeline::~HgiVulkanRayTracingPipeline()
 {
+    vkDestroyPipelineLayout(
+        _device->GetVulkanDevice(),
+        _vkPipelineLayout,
+        HgiVulkanAllocator());
+
+    vkDestroyPipeline(
+        _device->GetVulkanDevice(),
+        _vkPipeline,
+        HgiVulkanAllocator());
+
+    for (VkDescriptorSetLayout layout : _vkDescriptorSetLayouts) {
+        vkDestroyDescriptorSetLayout(
+            _device->GetVulkanDevice(),
+            layout,
+            HgiVulkanAllocator());
+    }
+
+    // This is called from inside garbage collector, so can just call delete on buffer pointer.
+    delete _shaderBindingTable.hitShaderBindingTable.Get();
+    delete _shaderBindingTable.missShaderBindingTable.Get();
+    delete _shaderBindingTable.raygenShaderBindingTable.Get();
 }
 
 void
@@ -291,7 +312,7 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
 
     HgiBufferDesc raygenShaderBindingTableBufferDesc;
     raygenShaderBindingTableBufferDesc.debugName = _descriptor.debugName + " Raygen Shader Binding Table";
-    raygenShaderBindingTableBufferDesc.usage = HgiBufferUsageShaderBindingTable | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    raygenShaderBindingTableBufferDesc.usage = HgiBufferUsageShaderBindingTable | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress;
     raygenShaderBindingTableBufferDesc.byteSize = rayGenShaderHandleStorage.size();
     raygenShaderBindingTableBufferDesc.initialData = rayGenShaderHandleStorage.data();
     _shaderBindingTable.raygenShaderBindingTable = _pHgi->CreateBuffer(raygenShaderBindingTableBufferDesc);
@@ -299,7 +320,7 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
 
     HgiBufferDesc missShaderBindingTableBufferDesc;
     missShaderBindingTableBufferDesc.debugName = _descriptor.debugName + " Miss Shader Binding Table";
-    missShaderBindingTableBufferDesc.usage = HgiBufferUsageShaderBindingTable | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    missShaderBindingTableBufferDesc.usage = HgiBufferUsageShaderBindingTable | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress;
     missShaderBindingTableBufferDesc.byteSize = missShaderHandleStorage.size();
     missShaderBindingTableBufferDesc.initialData = missShaderHandleStorage.data();
     _shaderBindingTable.missShaderBindingTable = _pHgi->CreateBuffer(missShaderBindingTableBufferDesc);
@@ -307,7 +328,7 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
 
     HgiBufferDesc closestHitShaderBindingTableBufferDesc;
     closestHitShaderBindingTableBufferDesc.debugName = _descriptor.debugName + " Hit Shader Binding Table";
-    closestHitShaderBindingTableBufferDesc.usage = HgiBufferUsageShaderBindingTable | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress | HgiBufferUsageNoTransfer;
+    closestHitShaderBindingTableBufferDesc.usage = HgiBufferUsageShaderBindingTable | HgiBufferUsageRayTracingExtensions | HgiBufferUsageShaderDeviceAddress;
     closestHitShaderBindingTableBufferDesc.byteSize = hitShaderHandleStorage.size();;
     closestHitShaderBindingTableBufferDesc.initialData = hitShaderHandleStorage.data();
     _shaderBindingTable.hitShaderBindingTable = _pHgi->CreateBuffer(closestHitShaderBindingTableBufferDesc);

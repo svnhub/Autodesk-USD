@@ -105,6 +105,7 @@ public:
     PFN_vkQueueEndDebugUtilsLabelEXT vkQueueEndDebugUtilsLabelEXT = 0;
     PFN_vkGetBufferDeviceAddressKHR vkGetBufferDeviceAddressKHR = 0;
     PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructureKHR = 0;
+    PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructureKHR = 0;
     PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizesKHR = 0;
     PFN_vkGetAccelerationStructureDeviceAddressKHR vkGetAccelerationStructureDeviceAddressKHR = 0;
     PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructuresKHR = 0;

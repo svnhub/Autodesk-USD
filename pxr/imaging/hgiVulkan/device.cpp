@@ -341,6 +341,7 @@ HgiVulkanDevice::HgiVulkanDevice(HgiVulkanInstance* instance)
     vkGetDeviceProcAddr(_vkDevice, "vkCreateRenderPass2KHR");
     vkGetBufferDeviceAddressKHR = (PFN_vkGetBufferDeviceAddressKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetBufferDeviceAddressKHR"));
     vkCreateAccelerationStructureKHR = (PFN_vkCreateAccelerationStructureKHR)(vkGetDeviceProcAddr(_vkDevice, "vkCreateAccelerationStructureKHR"));
+    vkDestroyAccelerationStructureKHR = (PFN_vkDestroyAccelerationStructureKHR)(vkGetDeviceProcAddr(_vkDevice, "vkDestroyAccelerationStructureKHR"));
     vkGetAccelerationStructureBuildSizesKHR = (PFN_vkGetAccelerationStructureBuildSizesKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetAccelerationStructureBuildSizesKHR"));
     vkGetAccelerationStructureDeviceAddressKHR = (PFN_vkGetAccelerationStructureDeviceAddressKHR)(vkGetDeviceProcAddr(_vkDevice, "vkGetAccelerationStructureDeviceAddressKHR"));
     vkCmdBuildAccelerationStructuresKHR = (PFN_vkCmdBuildAccelerationStructuresKHR)(vkGetDeviceProcAddr(_vkDevice, "vkCmdBuildAccelerationStructuresKHR"));
