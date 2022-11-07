@@ -39,28 +39,28 @@
 
 PXR_NAMESPACE_OPEN_SCOPE
 
-std::vector<HgiVulkanBufferVector*> 
+std::vector<HgiVulkanBufferVector*>
     HgiVulkanGarbageCollector::_bufferList;
-std::vector<HgiVulkanTextureVector*> 
+std::vector<HgiVulkanTextureVector*>
     HgiVulkanGarbageCollector::_textureList;
-std::vector<HgiVulkanSamplerVector*> 
+std::vector<HgiVulkanSamplerVector*>
     HgiVulkanGarbageCollector::_samplerList;
-std::vector<HgiVulkanShaderFunctionVector*> 
+std::vector<HgiVulkanShaderFunctionVector*>
     HgiVulkanGarbageCollector::_shaderFunctionList;
-std::vector<HgiVulkanShaderProgramVector*> 
+std::vector<HgiVulkanShaderProgramVector*>
     HgiVulkanGarbageCollector::_shaderProgramList;
-std::vector<HgiVulkanResourceBindingsVector*> 
+std::vector<HgiVulkanResourceBindingsVector*>
     HgiVulkanGarbageCollector::_resourceBindingsList;
-std::vector<HgiVulkanGraphicsPipelineVector*> 
+std::vector<HgiVulkanGraphicsPipelineVector*>
     HgiVulkanGarbageCollector::_graphicsPipelineList;
-std::vector<HgiVulkanComputePipelineVector*> 
+std::vector<HgiVulkanComputePipelineVector*>
     HgiVulkanGarbageCollector::_computePipelineList;
 std::vector<HgiVulkanRayTracingPipelineVector*>
     HgiVulkanGarbageCollector::_rayTracingPipelineList;
 std::vector<HgiVulkanAccelerationStructureVector*>
-HgiVulkanGarbageCollector::_accelerationStructureList;
+    HgiVulkanGarbageCollector::_accelerationStructureList;
 std::vector<HgiVulkanAccelerationStructureGeometryVector*>
-HgiVulkanGarbageCollector::_accelerationStructureGeometryList;
+    HgiVulkanGarbageCollector::_accelerationStructureGeometryList;
 
 
 template<class T>
