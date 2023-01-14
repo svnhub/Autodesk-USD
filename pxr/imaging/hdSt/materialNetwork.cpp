@@ -574,26 +574,32 @@ _ResolveWrapSamplerParameter(
     SdrShaderNodeConstPtr const &sdrNode,
     TfToken const &name)
 {
-    const TfToken value = _ResolveParameter(
-        node, sdrNode, name, HdStTextureTokens->useMetadata);
+    TfToken wrapSampler = _ResolveParameter(
+        node, sdrNode, name, TfToken());
+    if (wrapSampler.IsEmpty()) {
+        const std::string wrapSamplerStr = _ResolveParameter(
+            node, sdrNode, name,
+            HdStTextureTokens->useMetadata.GetString());
+        wrapSampler = TfToken(wrapSamplerStr);
+    }
 
-    if (value == HdStTextureTokens->repeat) {
+    if (wrapSampler == HdStTextureTokens->repeat) {
         return HdWrapRepeat;
     }
 
-    if (value == HdStTextureTokens->mirror) {
+    if (wrapSampler == HdStTextureTokens->mirror) {
         return HdWrapMirror;
     }
 
-    if (value == HdStTextureTokens->clamp) {
+    if (wrapSampler == HdStTextureTokens->clamp) {
         return HdWrapClamp;
     }
 
-    if (value == HdStTextureTokens->black) {
+    if (wrapSampler == HdStTextureTokens->black) {
         return HdWrapBlack;
     }
 
-    if (value == HdStTextureTokens->useMetadata) {
+    if (wrapSampler == HdStTextureTokens->useMetadata) {
         if (node.nodeTypeId == _tokens->HwUvTexture_1) {
             return HdWrapLegacy;
         }
@@ -601,7 +607,7 @@ _ResolveWrapSamplerParameter(
     }
 
     TF_WARN("Unknown wrap mode on prim %s: %s",
-            nodePath.GetText(), value.GetText());
+            nodePath.GetText(), wrapSampler.GetText());
 
     return HdWrapUseMetadata;
 }
@@ -620,31 +626,37 @@ _ResolveMinSamplerParameter(
     // min filter, linearMipmapLinear was used, but when an empty
     // token was authored, linear was used.
 
-    const TfToken value = _ResolveParameter(
+    TfToken minSampler = _ResolveParameter(
         node, sdrNode, HdStTextureTokens->minFilter,
-        HdStTextureTokens->linearMipmapLinear);
+        TfToken());
+    if (minSampler.IsEmpty()) {
+        const std::string minSamplerStr = _ResolveParameter(
+            node, sdrNode, HdStTextureTokens->minFilter,
+            HdStTextureTokens->linearMipmapLinear.GetString());
+        minSampler = TfToken(minSamplerStr);
+    }
 
-    if (value == HdStTextureTokens->nearest) {
+    if (minSampler == HdStTextureTokens->nearest) {
         return HdMinFilterNearest;
     }
 
-    if (value == HdStTextureTokens->linear) {
+    if (minSampler == HdStTextureTokens->linear) {
         return HdMinFilterLinear;
     }
 
-    if (value == HdStTextureTokens->nearestMipmapNearest) {
+    if (minSampler == HdStTextureTokens->nearestMipmapNearest) {
         return HdMinFilterNearestMipmapNearest;
     }
 
-    if (value == HdStTextureTokens->nearestMipmapLinear) {
+    if (minSampler == HdStTextureTokens->nearestMipmapLinear) {
         return HdMinFilterNearestMipmapLinear;
     }
 
-    if (value == HdStTextureTokens->linearMipmapNearest) {
+    if (minSampler == HdStTextureTokens->linearMipmapNearest) {
         return HdMinFilterLinearMipmapNearest;
     }
 
-    if (value == HdStTextureTokens->linearMipmapLinear) {
+    if (minSampler == HdStTextureTokens->linearMipmapLinear) {
         return HdMinFilterLinearMipmapLinear;
     }
 
@@ -657,10 +669,16 @@ _ResolveMagSamplerParameter(
     HdMaterialNode2 const& node,
     SdrShaderNodeConstPtr const &sdrNode)
 {
-    const TfToken value = _ResolveParameter(
-        node, sdrNode, HdStTextureTokens->magFilter, HdStTextureTokens->linear);
+    TfToken magSampler = _ResolveParameter(
+        node, sdrNode, HdStTextureTokens->magFilter, TfToken());
+    if (magSampler.IsEmpty()) {
+        const std::string magSamplerStr = _ResolveParameter(
+            node, sdrNode, HdStTextureTokens->magFilter,
+            HdStTextureTokens->linear.GetString());
+        magSampler = TfToken(magSamplerStr);
+    }
 
-    if (value == HdStTextureTokens->nearest) {
+    if (magSampler == HdStTextureTokens->nearest) {
         return HdMagFilterNearest;
     }
 
