@@ -66,7 +66,7 @@ public:
     static VkSampleCountFlagBits GetSampleCount(HgiSampleCount sc);
 
     HGIVULKAN_API
-    static VkShaderStageFlags GetShaderStages(HgiShaderStage ss);
+    static VkShaderStageFlags GetShaderStages(HgiShaderStage ss, HgiShaderFunctionRole role);
 
     HGIVULKAN_API
     static VkBufferUsageFlags GetBufferUsage(HgiBufferUsage bu);

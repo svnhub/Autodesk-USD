@@ -197,7 +197,7 @@ HgiVulkanGraphicsCmds::SetConstantValues(
                 vkCmdPushConstants(
                     _commandBuffer->GetVulkanCommandBuffer(),
                     pso->GetVulkanPipelineLayout(),
-                    HgiVulkanConversions::GetShaderStages(stages),
+                    HgiVulkanConversions::GetShaderStages(stages, HgiShaderFunctionRoleDefault),
                     0, // offset
                     byteSize,
                     dataCopy);

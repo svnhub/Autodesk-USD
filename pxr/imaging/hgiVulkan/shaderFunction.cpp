@@ -58,7 +58,7 @@ HgiVulkanShaderFunction::HgiVulkanShaderFunction(
 
     HgiVulkanShaderGenerator shaderGenerator(hgi, desc);
     // Ray tracing shaders should not run the code generator, at the moment.
-    if (desc.shaderStage == HgiShaderStageMiss || desc.shaderStage == HgiShaderStageRayGen || desc.shaderStage == HgiShaderStageClosestHit || desc.shaderStage == HgiShaderStageCallable || desc.shaderStage == HgiShaderStageAnyHit)
+    if (desc.shaderStage == HgiShaderStageRayTracing)
         shaderCode = desc.shaderCode ? desc.shaderCode : "";
     else {
         shaderGenerator.Execute();
@@ -71,6 +71,7 @@ HgiVulkanShaderFunction::HgiVulkanShaderFunction(
         &shaderCode,
         1,
         desc.shaderStage,
+        desc.shaderRole,
         &spirv,
         &_errors);
 
@@ -130,7 +131,7 @@ VkShaderStageFlagBits
 HgiVulkanShaderFunction::GetShaderStage() const
 {
     return VkShaderStageFlagBits(
-        HgiVulkanConversions::GetShaderStages(_descriptor.shaderStage));
+        HgiVulkanConversions::GetShaderStages(_descriptor.shaderStage, _descriptor.shaderRole));
 }
 
 VkShaderModule

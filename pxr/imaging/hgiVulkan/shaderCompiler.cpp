@@ -38,7 +38,7 @@ PXR_NAMESPACE_OPEN_SCOPE
 
 
 static shaderc_shader_kind
-_GetShaderStage(HgiShaderStage stage)
+_GetShaderStage(HgiShaderStage stage, HgiShaderFunctionRole role)
 {
     switch(stage) {
         case HgiShaderStageVertex:
@@ -53,18 +53,24 @@ _GetShaderStage(HgiShaderStage stage)
             return shaderc_glsl_fragment_shader;
         case HgiShaderStageCompute:
             return shaderc_glsl_compute_shader;
-        case HgiShaderStageRayGen:
-            return shaderc_glsl_raygen_shader;
-        case HgiShaderStageAnyHit:
-            return shaderc_glsl_anyhit_shader;
-        case HgiShaderStageClosestHit:
-            return shaderc_glsl_closesthit_shader;
-        case HgiShaderStageMiss:
-            return shaderc_glsl_miss_shader;
-        case HgiShaderStageIntersection:
-            return shaderc_intersection_shader;
-        case HgiShaderStageCallable:
-            return shaderc_callable_shader;
+        case HgiShaderStageRayTracing:
+            switch (role) {
+                case HgiShaderFunctionRoleRayGen:
+                    return shaderc_glsl_raygen_shader;
+                case HgiShaderFunctionRoleAnyHit:
+                    return shaderc_glsl_anyhit_shader;
+                case HgiShaderFunctionRoleClosestHit:
+                    return shaderc_glsl_closesthit_shader;
+                case HgiShaderFunctionRoleMiss:
+                    return shaderc_glsl_miss_shader;
+                case HgiShaderFunctionRoleIntersection:
+                    return shaderc_intersection_shader;
+                case HgiShaderFunctionRoleCallable:
+                    return shaderc_callable_shader;
+                default:
+                    TF_CODING_ERROR("Invalid role");
+            }
+
     }
 
     TF_CODING_ERROR("Unknown stage");
@@ -77,6 +83,7 @@ HgiVulkanCompileGLSL(
     const char* shaderCodes[],
     uint8_t numShaderCodes,
     HgiShaderStage stage,
+    HgiShaderStage role,
     std::vector<unsigned int>* spirvOUT,
     std::string* errors)
 {
@@ -104,7 +111,7 @@ HgiVulkanCompileGLSL(
         options.SetTargetSpirv(shaderc_spirv_version_1_0);
     }
 
-    shaderc_shader_kind const kind = _GetShaderStage(stage);
+    shaderc_shader_kind const kind = _GetShaderStage(stage, role);
 
     shaderc::Compiler compiler;
     shaderc::SpvCompilationResult result =

@@ -289,7 +289,7 @@ HgiVulkanGraphicsPipeline::HgiVulkanGraphicsPipeline(
         pcRanges.offset = 0;
         pcRanges.size = desc.shaderConstantsDesc.byteSize;
         pcRanges.stageFlags = HgiVulkanConversions::GetShaderStages(
-            desc.shaderConstantsDesc.stageUsage);
+            desc.shaderConstantsDesc.stageUsage, HgiShaderFunctionRoleDefault);
     }
 
     VkPipelineLayoutCreateInfo pipeLayCreateInfo =

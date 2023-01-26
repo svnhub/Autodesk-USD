@@ -47,6 +47,7 @@ struct HgiAccelerationStructureBindDesc
     HgiBindResourceType resourceType = HgiBindResourceTypeAccelerationStructure;
     uint32_t bindingIndex = 0;
     HgiShaderStage stageUsage;
+    HgiShaderFunctionRole shaderRole = HgiShaderFunctionRoleDefault;
 };
 using HgiAccelerationStructureBindDescVector = std::vector<HgiAccelerationStructureBindDesc>;
 
@@ -104,6 +105,7 @@ struct HgiBufferBindDesc
     HgiBindResourceType resourceType;
     uint32_t bindingIndex;
     HgiShaderStage stageUsage;
+    HgiShaderFunctionRole shaderRole = HgiShaderFunctionRoleDefault;
 };
 using HgiBufferBindDescVector = std::vector<HgiBufferBindDesc>;
 
@@ -149,6 +151,7 @@ struct HgiTextureBindDesc
     HgiBindResourceType resourceType;
     uint32_t bindingIndex;
     HgiShaderStage stageUsage;
+    HgiShaderFunctionRole shaderRole = HgiShaderFunctionRoleDefault;
 };
 using HgiTextureBindDescVector = std::vector<HgiTextureBindDesc>;
 

@@ -58,7 +58,7 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
             layoutBinding.binding = bindingDesc.bindingIndex;
             layoutBinding.descriptorType = HgiVulkanConversions::GetDescriptorType(bindingDesc.resourceType);
             layoutBinding.descriptorCount = bindingDesc.count;
-            layoutBinding.stageFlags = HgiVulkanConversions::GetShaderStages(bindingDesc.stageUsage);
+            layoutBinding.stageFlags = HgiVulkanConversions::GetShaderStages(bindingDesc.stageUsage, bindingDesc.stageRole);
             bindings.push_back(layoutBinding);
         }
 
@@ -84,7 +84,7 @@ HgiVulkanRayTracingPipeline::HgiVulkanRayTracingPipeline(
         VkPipelineShaderStageCreateInfo shaderStage;
         shaderStage = {};
         shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStage.stage = (VkShaderStageFlagBits) HgiVulkanConversions::GetShaderStages(shader->GetDescriptor().shaderStage);;
+        shaderStage.stage = (VkShaderStageFlagBits) HgiVulkanConversions::GetShaderStages(shader->GetDescriptor().shaderStage, shader->GetDescriptor().shaderRole);
         shaderStage.module = (VkShaderModule)shader->GetRawResource();
         shaderStage.pName = desc.shaders[i].entryPoint.c_str();
         shaderStages.push_back(shaderStage);
@@ -256,52 +256,52 @@ void HgiVulkanRayTracingPipeline::BuildShaderBindingTable() {
         if (_descriptor.groups[i].generalShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].generalShader;
-            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
+            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleRayGen) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleMiss) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleAnyHit) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
         else if (_descriptor.groups[i].closestHitShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].closestHitShader;
-            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
+            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleRayGen) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleMiss) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleAnyHit) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
         else if (_descriptor.groups[i].anyHitShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].anyHitShader;
-            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
+            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleRayGen) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleMiss) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleAnyHit) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }
         else if (_descriptor.groups[i].intersectionShader != 0xFFFF)
         {
             int idx = _descriptor.groups[i].intersectionShader;
-            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageRayGen) {
+            if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleRayGen) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, rayGenShaderHandleStorage,rayGenStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageMiss) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleMiss) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, missShaderHandleStorage,missStride);
             }
-            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderStage == HgiShaderStageAnyHit) {
+            else if (_descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleClosestHit || _descriptor.shaders[idx].shader->GetDescriptor().shaderRole == HgiShaderFunctionRoleAnyHit) {
                 WriteShaderGroup(_descriptor.groups[i], shaderHandleStorage, i, hitShaderHandleStorage, hitStride);
             }
         }

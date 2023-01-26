@@ -62,6 +62,7 @@ bool HgiVulkanCompileGLSL(
     const char* shaderCodes[],
     uint8_t numShaderCodes,
     HgiShaderStage stage,
+    HgiShaderStage role,
     std::vector<unsigned int>* spirvOUT,
     std::string* errors = nullptr);
 

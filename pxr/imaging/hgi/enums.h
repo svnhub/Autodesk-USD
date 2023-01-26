@@ -82,19 +82,19 @@ enum HgiDeviceCapabilitiesBits : HgiBits
     HgiDeviceCapabilitiesBitsBindlessBuffers = 1 << 1,
     HgiDeviceCapabilitiesBitsConcurrentDispatch = 1 << 2,
     HgiDeviceCapabilitiesBitsUnifiedMemory = 1 << 3,
-    HgiDeviceCapabilitiesBitsBuiltinBarycentrics     = 1 << 4,
-    HgiDeviceCapabilitiesBitsShaderDrawParameters    = 1 << 5,
-    HgiDeviceCapabilitiesBitsMultiDrawIndirect       = 1 << 6,
-    HgiDeviceCapabilitiesBitsBindlessTextures        = 1 << 7,
-    HgiDeviceCapabilitiesBitsShaderDoublePrecision   = 1 << 8,
+    HgiDeviceCapabilitiesBitsBuiltinBarycentrics = 1 << 4,
+    HgiDeviceCapabilitiesBitsShaderDrawParameters = 1 << 5,
+    HgiDeviceCapabilitiesBitsMultiDrawIndirect = 1 << 6,
+    HgiDeviceCapabilitiesBitsBindlessTextures = 1 << 7,
+    HgiDeviceCapabilitiesBitsShaderDoublePrecision = 1 << 8,
     HgiDeviceCapabilitiesBitsDepthRangeMinusOnetoOne = 1 << 9,
-    HgiDeviceCapabilitiesBitsCppShaderPadding        = 1 << 10,
-    HgiDeviceCapabilitiesBitsConservativeRaster      = 1 << 11,
-    HgiDeviceCapabilitiesBitsStencilReadback         = 1 << 12,
-    HgiDeviceCapabilitiesBitsCustomDepthRange        = 1 << 13,
-    HgiDeviceCapabilitiesBitsMetalTessellation       = 1 << 14,
-    HgiDeviceCapabilitiesBitsBasePrimitiveOffset     = 1 << 15,
-    HgiDeviceCapabilitiesBitsRayTracing              = 1 << 16,
+    HgiDeviceCapabilitiesBitsCppShaderPadding = 1 << 10,
+    HgiDeviceCapabilitiesBitsConservativeRaster = 1 << 11,
+    HgiDeviceCapabilitiesBitsStencilReadback = 1 << 12,
+    HgiDeviceCapabilitiesBitsCustomDepthRange = 1 << 13,
+    HgiDeviceCapabilitiesBitsMetalTessellation = 1 << 14,
+    HgiDeviceCapabilitiesBitsBasePrimitiveOffset = 1 << 15,
+    HgiDeviceCapabilitiesBitsRayTracing = 1 << 16,
 };
 
 using HgiDeviceCapabilities = HgiBits;
@@ -233,8 +233,8 @@ enum HgiMipFilter
 enum HgiBorderColor
 {
     HgiBorderColorTransparentBlack = 0,
-    HgiBorderColorOpaqueBlack      = 1,
-    HgiBorderColorOpaqueWhite      = 2,
+    HgiBorderColorOpaqueBlack = 1,
+    HgiBorderColorOpaqueWhite = 2,
 
     HgiBorderColorCount
 };
@@ -369,16 +369,37 @@ enum HgiShaderStageBits : HgiBits
     HgiShaderStageGeometry = 1 << 5,
     HgiShaderStagePostTessellationControl = 1 << 6,
     HgiShaderStagePostTessellationVertex = 1 << 7,
-    HgiShaderStageRayGen = 1 << 8,
-    HgiShaderStageAnyHit = 1 << 9,
-    HgiShaderStageClosestHit = 1 << 10,
-    HgiShaderStageMiss = 1 << 11,
-    HgiShaderStageIntersection = 1 << 12,
-    HgiShaderStageCallable = 1 << 13,
+    HgiShaderStageRayTracing = 1 << 8,
 
-    HgiShaderStageCustomBitsBegin        = 1 << 14,
+    HgiShaderStageCustomBitsBegin = 1 << 14,
 };
 using HgiShaderStage = HgiBits;
+
+
+/// \enum HgiShaderStage
+///
+/// Describes the stage a shader function operates in.
+///
+/// <ul>
+/// <li>HgiShaderStageVertex:
+///   Vertex Shader.</li>
+/// <li>HgiShaderStageFragment:
+///   Fragment Shader.</li>
+/// <li>HgiShaderStageCompute:
+///   Compute Shader.</li>
+/// <li>HgiShaderStageTessellationControl:
+///   Transforms the control points of the low order surface (patch)
+enum HgiShaderFunctionRoleBits : HgiBits
+{
+    HgiShaderFunctionRoleDefault = 0,
+    HgiShaderFunctionRoleRayGen = 1 << 8,
+    HgiShaderFunctionRoleAnyHit = 1 << 9,
+    HgiShaderFunctionRoleClosestHit = 1 << 10,
+    HgiShaderFunctionRoleMiss = 1 << 11,
+    HgiShaderFunctionRoleIntersection = 1 << 12,
+    HgiShaderFunctionRoleCallable = 1 << 13,
+};
+using HgiShaderFunctionRole = HgiBits;
 
 /// \enum HgiBindResourceType
 ///
@@ -535,10 +556,10 @@ enum HgiBlendFactor
 ///
 enum HgiColorMaskBits : HgiBits
 {
-    HgiColorMaskRed             = 1 << 0,
-    HgiColorMaskGreen           = 1 << 1,
-    HgiColorMaskBlue            = 1 << 2,
-    HgiColorMaskAlpha           = 1 << 3,
+    HgiColorMaskRed = 1 << 0,
+    HgiColorMaskGreen = 1 << 1,
+    HgiColorMaskBlue = 1 << 2,
+    HgiColorMaskAlpha = 1 << 3,
 };
 using HgiColorMask = HgiBits;
 

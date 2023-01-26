@@ -139,7 +139,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
             HgiVulkanConversions::GetDescriptorType(b.resourceType);
         poolSizes[b.resourceType].descriptorCount++;
         d.descriptorCount = (uint32_t)b.accelerationStructures.size();
-        d.stageFlags = HgiVulkanConversions::GetShaderStages(b.stageUsage);
+        d.stageFlags = HgiVulkanConversions::GetShaderStages(b.stageUsage, b.shaderRole);
         d.pImmutableSamplers = nullptr;
         bindings.push_back(std::move(d));
     }
@@ -152,7 +152,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
             HgiVulkanConversions::GetDescriptorType(b.resourceType);
         poolSizes[b.resourceType].descriptorCount++;
         d.descriptorCount = (uint32_t)b.buffers.size();
-        d.stageFlags = HgiVulkanConversions::GetShaderStages(b.stageUsage);
+        d.stageFlags = HgiVulkanConversions::GetShaderStages(b.stageUsage, b.shaderRole);
         d.pImmutableSamplers = nullptr;
         bindings.push_back(std::move(d));
     }
@@ -169,7 +169,7 @@ HgiVulkanResourceBindings::HgiVulkanResourceBindings(
             HgiVulkanConversions::GetDescriptorType(t.resourceType);
         poolSizes[t.resourceType].descriptorCount++;
         d.descriptorCount = descriptorCount;
-        d.stageFlags = HgiVulkanConversions::GetShaderStages(t.stageUsage);
+        d.stageFlags = HgiVulkanConversions::GetShaderStages(t.stageUsage, t.shaderRole);
         d.pImmutableSamplers = nullptr;
         bindings.push_back(std::move(d));
     }

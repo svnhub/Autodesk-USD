@@ -130,14 +130,20 @@ _ShaderStageTable[][2] =
     {HgiShaderStageTessellationControl, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT},
     {HgiShaderStageTessellationEval,    VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT},
     {HgiShaderStageGeometry,            VK_SHADER_STAGE_GEOMETRY_BIT},
-    {HgiShaderStageRayGen,            VK_SHADER_STAGE_RAYGEN_BIT_KHR},
-    {HgiShaderStageAnyHit,            VK_SHADER_STAGE_ANY_HIT_BIT_KHR},
-    {HgiShaderStageClosestHit,            VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
-    {HgiShaderStageMiss,            VK_SHADER_STAGE_MISS_BIT_KHR},
-    {HgiShaderStageIntersection,            VK_SHADER_STAGE_INTERSECTION_BIT_KHR},
-    {HgiShaderStageCallable,            VK_SHADER_STAGE_CALLABLE_BIT_KHR},
 };
 static_assert(HgiShaderStageCustomBitsBegin == 1 << 14, "");
+
+static const uint32_t
+_ShaderRayTracingRoleTable[][2] =
+{
+    {HgiShaderFunctionRoleRayGen,            VK_SHADER_STAGE_RAYGEN_BIT_KHR},
+    {HgiShaderFunctionRoleAnyHit,            VK_SHADER_STAGE_ANY_HIT_BIT_KHR},
+    {HgiShaderFunctionRoleClosestHit,            VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR},
+    {HgiShaderFunctionRoleMiss,            VK_SHADER_STAGE_MISS_BIT_KHR},
+    {HgiShaderFunctionRoleIntersection,            VK_SHADER_STAGE_INTERSECTION_BIT_KHR},
+    {HgiShaderFunctionRoleCallable,            VK_SHADER_STAGE_CALLABLE_BIT_KHR},
+};
+
 
 static const uint32_t
 _TextureUsageTable[][2] =
@@ -507,15 +513,29 @@ HgiVulkanConversions::GetSampleCount(HgiSampleCount sc)
 }
 
 VkShaderStageFlags
-HgiVulkanConversions::GetShaderStages(HgiShaderStage ss)
+HgiVulkanConversions::GetShaderStages(HgiShaderStage ss, HgiShaderFunctionRole role)
 {
     VkShaderStageFlags vkFlags = 0;
-    for (const auto& f : _ShaderStageTable) {
-        if (ss & f[0]) vkFlags |= f[1];
-    }
 
-    if (vkFlags==0) {
-        TF_CODING_ERROR("Missing shader stage table entry");
+    if (ss == HgiShaderStageRayTracing) {
+        for (const auto& f : _ShaderRayTracingRoleTable) {
+            if (ss & f[0]) vkFlags |= f[1];
+        }
+
+        if (vkFlags == 0) {
+            TF_CODING_ERROR("Missing shader function role entry");
+        }
+
+    }
+    else {
+        for (const auto& f : _ShaderStageTable) {
+            if (ss & f[0]) vkFlags |= f[1];
+        }
+
+        if (vkFlags == 0) {
+            TF_CODING_ERROR("Missing shader stage table entry");
+        }
+
     }
     return vkFlags;
 }
