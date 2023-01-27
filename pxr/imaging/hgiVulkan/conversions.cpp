@@ -518,6 +518,7 @@ HgiVulkanConversions::GetShaderStages(HgiShaderStage ss, HgiShaderFunctionRole r
     VkShaderStageFlags vkFlags = 0;
 
     if (ss == HgiShaderStageRayTracing) {
+        // For ray tracing functions, work out Vulkan stage from role.
         for (const auto& f : _ShaderRayTracingRoleTable) {
             if (ss & f[0]) vkFlags |= f[1];
         }

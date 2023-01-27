@@ -376,19 +376,21 @@ enum HgiShaderStageBits : HgiBits
 using HgiShaderStage = HgiBits;
 
 
-/// \enum HgiShaderStage
+/// \enum HgiShaderFunctionRole
 ///
-/// Describes the stage a shader function operates in.
+/// Describes the role of the shader function operates in, currently only applies to ray tracing shaders.
 ///
 /// <ul>
-/// <li>HgiShaderStageVertex:
-///   Vertex Shader.</li>
-/// <li>HgiShaderStageFragment:
-///   Fragment Shader.</li>
-/// <li>HgiShaderStageCompute:
-///   Compute Shader.</li>
-/// <li>HgiShaderStageTessellationControl:
-///   Transforms the control points of the low order surface (patch)
+/// <li>HgiShaderFunctionRoleRayGen:
+///   Ray Generation function.</li>
+/// <li>HgiShaderFunctionRoleAnyHit:
+///   Any hit ray intersection function.</li>
+/// <li>HgiShaderFunctionRoleClosestHit:
+///   Closest hit ray intersection function.</li>
+/// <li>HgiShaderFunctionRoleIntersection:
+///   Custom intersection function.</li>
+/// <li>HgiShaderFunctionRoleCallable:
+///   Callable function.</li>
 enum HgiShaderFunctionRoleBits : HgiBits
 {
     HgiShaderFunctionRoleDefault = 0,
