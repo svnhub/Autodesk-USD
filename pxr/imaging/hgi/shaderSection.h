@@ -87,6 +87,9 @@ public:
     /// Returns the attributes of the section
     HGI_API
     const HgiShaderSectionAttributeVector& GetAttributes() const;
+
+    HGI_API
+    const std::string& GetIdentifier() const;
     
     /// Returns the arraySize of the section
     const std::string& GetArraySize() const {

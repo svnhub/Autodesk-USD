@@ -40,6 +40,14 @@ class HgiInteropOpenGL;
 class HgiInteropVulkan;
 class VtValue;
 
+struct HgiCustomInterop
+{
+   virtual void TransferToApp(HgiTextureHandle const& srcColor,
+                              HgiTextureHandle const& srcDepth,
+                              VtValue const& dstFramebuffer,
+                              GfVec4i const& dstRegion) = 0;
+};
+
 /// \class HgiInterop
 ///
 /// Hydra Graphics Interface Interop.
@@ -102,11 +110,13 @@ private:
 
 #if defined(PXR_METAL_SUPPORT_ENABLED)
     std::unique_ptr<HgiInteropMetal> _metalToOpenGL;
-#elif defined(PXR_VULKAN_SUPPORT_ENABLED)
-    std::unique_ptr<HgiInteropVulkan> _vulkanToOpenGL;
-#else
-    std::unique_ptr<HgiInteropOpenGL> _openGLToOpenGL;
 #endif
+#if defined(PXR_VULKAN_SUPPORT_ENABLED)
+    std::unique_ptr<HgiInteropVulkan> _vulkanToOpenGL;
+#endif
+
+    std::unique_ptr<HgiInteropOpenGL> _openGLToOpenGL;
+
 };
 
 

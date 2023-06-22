@@ -29,12 +29,14 @@
 #if defined(PXR_METAL_SUPPORT_ENABLED)
     #include "pxr/imaging/hgiMetal/hgi.h"
     #include "pxr/imaging/hgiInterop/metal.h"
-#elif defined(PXR_VULKAN_SUPPORT_ENABLED)
+#endif
+
+#if defined(PXR_VULKAN_SUPPORT_ENABLED)
     #include "pxr/imaging/hgiVulkan/hgi.h"
     #include "pxr/imaging/hgiInterop/vulkan.h"
-#else
-    #include "pxr/imaging/hgiInterop/opengl.h"
 #endif
+
+#include "pxr/imaging/hgiInterop/opengl.h"
 
 PXR_NAMESPACE_OPEN_SCOPE
 
@@ -60,10 +62,11 @@ void HgiInterop::TransferToApp(
         }
         _metalToOpenGL->CompositeToInterop(
             srcColor, srcDepth, dstFramebuffer, dstRegion);
-    } else {
-        TF_CODING_ERROR("Unsupported Hgi backend: %s", srcApi.GetText());
+
+        return;
     }
-#elif defined(PXR_VULKAN_SUPPORT_ENABLED)
+#endif
+#if defined(PXR_VULKAN_SUPPORT_ENABLED)
     if (srcApi==HgiTokens->Vulkan && dstApi==HgiTokens->OpenGL) {
         // Transfer Vulkan textures to OpenGL application
         if (!_vulkanToOpenGL) {
@@ -71,10 +74,11 @@ void HgiInterop::TransferToApp(
         }
         _vulkanToOpenGL->CompositeToInterop(
             srcColor, srcDepth, dstFramebuffer, dstRegion);
-    } else {
-        TF_CODING_ERROR("Unsupported Hgi backend: %s", srcApi.GetText());
+
+        return;
     }
-#else
+#endif
+
     if (srcApi==HgiTokens->OpenGL && dstApi==HgiTokens->OpenGL) {
         // Transfer OpenGL textures to OpenGL application
         if (!_openGLToOpenGL) {
@@ -82,10 +86,21 @@ void HgiInterop::TransferToApp(
         }
         _openGLToOpenGL->CompositeToInterop(
             srcColor, srcDepth, dstFramebuffer, dstRegion);
-    } else {
-        TF_CODING_ERROR("Unsupported Hgi backend: %s", srcApi.GetText());
+
+        return;
     }
-#endif
+
+    //
+    // if we are in none of the <something> to OpenGL cases 
+    // let's try allowing the hgi to deal with this the right way (e.g. vulkan -> vulkan, directX -> directX, ...)
+    HgiCustomInterop* pInterop = srcHgi->GetCustomInterop();
+    if (nullptr != pInterop)
+    {
+        pInterop->TransferToApp(srcColor, srcDepth, dstFramebuffer, dstRegion);
+    }
+    else
+        TF_CODING_ERROR("Unsupported Hgi backend: %s", srcApi.GetText());
 }
 
 PXR_NAMESPACE_CLOSE_SCOPE
+

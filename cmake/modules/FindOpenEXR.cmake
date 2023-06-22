@@ -68,10 +68,14 @@ foreach(OPENEXR_LIB
 
     # OpenEXR libraries may be suffixed with the version number, so we search
     # using both versioned and unversioned names.
+    set(DEBUG_POSTFIX )
+    if(DEFINED PXR_USE_DEBUG_BUILD)
+        set(DEBUG_POSTFIX _d)
+    endif()
     find_library(OPENEXR_${OPENEXR_LIB}_LIBRARY
         NAMES
-            ${OPENEXR_LIB}-${OPENEXR_MAJOR_VERSION}_${OPENEXR_MINOR_VERSION}
-            ${OPENEXR_LIB}
+            ${OPENEXR_LIB}-${OPENEXR_MAJOR_VERSION}_${OPENEXR_MINOR_VERSION}${DEBUG_POSTFIX}
+            ${OPENEXR_LIB}${DEBUG_POSTFIX}
         HINTS
             "${OPENEXR_LOCATION}"
             "$ENV{OPENEXR_LOCATION}"

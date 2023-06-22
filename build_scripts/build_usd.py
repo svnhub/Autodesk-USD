@@ -1414,11 +1414,15 @@ def InstallOpenSubdiv(context, force, buildArgs):
             '-DNO_OMP=ON',
             '-DNO_CUDA=ON',
             '-DNO_OPENCL=ON',
-            '-DNO_DX=ON',
             '-DNO_TESTS=ON',
             '-DNO_GLEW=ON',
             '-DNO_GLFW=ON',
         ]
+        
+        if context.buildDirectX:
+            extraArgs.append('-DNO_DX=OFF')
+        else:
+            extraArgs.append('-DNO_DX=ON')
 
         # If Ptex support is disabled in USD, disable support in OpenSubdiv
         # as well. This ensures OSD doesn't accidentally pick up a Ptex
@@ -1782,6 +1786,9 @@ def InstallUSD(context, force, buildArgs):
             extraArgs.append('-DPXR_ENABLE_MATERIALX_SUPPORT=ON')
         else:
             extraArgs.append('-DPXR_ENABLE_MATERIALX_SUPPORT=OFF')
+            
+        if context.buildDirectX:
+            extraArgs.append('-DPXR_ENABLE_DIRECTX_SUPPORT=ON')
 
         if context.buildPythonDocs:
             extraArgs.append('-DPXR_BUILD_PYTHON_DOCUMENTATION=ON')
@@ -2103,6 +2110,11 @@ subgroup.add_argument("--materialx", dest="build_materialx", action="store_true"
 subgroup.add_argument("--no-materialx", dest="build_materialx", action="store_false",
                       help="Disable MaterialX support")
 
+group = parser.add_argument_group(title="Optional Hgi")
+group.add_argument("--directx", dest="buildDirectX", action="store_true", 
+                      default=False,
+                      help="Build DirectX Hgi")
+
 args = parser.parse_args()
 
 class InstallContext:
@@ -2241,6 +2253,9 @@ class InstallContext:
 
         # - MaterialX Plugin
         self.buildMaterialX = args.build_materialx
+        
+        # - Hgi
+        self.buildDirectX = args.buildDirectX
 
         # - Python docs
         self.buildPythonDocs = args.build_python_docs        
@@ -2490,6 +2505,7 @@ summaryMsg += """\
       HDF5 support:             {enableHDF5}
     Draco Plugin                {buildDraco}
     MaterialX Plugin            {buildMaterialX}
+    DirectX Hgi                 {buildDirectX}
 
   Dependencies                  {dependencies}"""
 
@@ -2551,7 +2567,8 @@ summaryMsg = summaryMsg.format(
     buildAlembic=("On" if context.buildAlembic else "Off"),
     buildDraco=("On" if context.buildDraco else "Off"),
     buildMaterialX=("On" if context.buildMaterialX else "Off"),
-    enableHDF5=("On" if context.enableHDF5 else "Off"))
+    enableHDF5=("On" if context.enableHDF5 else "Off"),
+    buildDirectX=("On" if context.buildDirectX else "Off"))
 
 Print(summaryMsg)
 
