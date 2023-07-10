@@ -209,6 +209,7 @@ pxr_library(hd
         overview.dox
 )
 
+if (NOT PXR_ENABLE_JS_SUPPORT)
 pxr_build_test(testHdBufferSourceEmptyVal
    LIBRARIES
        hd
@@ -355,7 +356,7 @@ pxr_build_test(testHdTypes
    CPPFILES
        testenv/testHdTypes.cpp
 )
-
+endif()
 
 pxr_install_test_dir(
     SRC testenv/testHdSortedIds
