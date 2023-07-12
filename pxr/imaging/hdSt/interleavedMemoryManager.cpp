@@ -523,7 +523,12 @@ HdStInterleavedMemoryManager::_StripedInterleavedBuffer::Reallocate(
             index += range->GetNumElements();
         }
     }
+
+    blitCmds->PopDebugGroup();
+
     if (oldBuf) {
+        // Submitting commands in case the buffer to be deleted is used
+        _resourceRegistry->SubmitBlitWork(HgiSubmitWaitTypeWaitUntilCompleted);
         // delete old buffer
         hgi->DestroyBuffer(&oldBuf);
     }
@@ -545,8 +550,6 @@ HdStInterleavedMemoryManager::_StripedInterleavedBuffer::Reallocate(
         }
         range->SetCapacity(range->GetNumElements());
     }
-
-    blitCmds->PopDebugGroup();
 
     _needsReallocation = false;
     _needsCompaction = false;

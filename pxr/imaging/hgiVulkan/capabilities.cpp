@@ -131,6 +131,8 @@ HgiVulkanCapabilities::HgiVulkanCapabilities(HgiVulkanDevice* device)
         hasBuiltinBarycentrics);
     _SetFlag(HgiDeviceCapabilitiesBitsShaderDrawParameters, 
         shaderDrawParametersEnabled);
+    _SetFlag(HgiDeviceCapabilitiesBitsGeometricStage, true);
+    _SetFlag(HgiDeviceCapabilitiesBitsOSDSupport, false);
 }
 
 HgiVulkanCapabilities::~HgiVulkanCapabilities() = default;

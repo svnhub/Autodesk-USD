@@ -232,6 +232,10 @@ if (PXR_BUILD_IMAGING)
     if (PXR_ENABLE_METAL_SUPPORT)
         add_definitions(-DPXR_METAL_SUPPORT_ENABLED)
     endif()
+        # --WebGPU
+    if (PXR_ENABLE_WEBGPU_SUPPORT)
+        add_definitions(-DPXR_WEBGPU_SUPPORT_ENABLED)
+    endif()
     if (PXR_ENABLE_VULKAN_SUPPORT)
         if (EXISTS $ENV{VULKAN_SDK})
             # Prioritize the VULKAN_SDK includes and packages before any system

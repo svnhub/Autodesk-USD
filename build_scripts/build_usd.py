@@ -453,6 +453,7 @@ def RunCMake(context, force, extraArgs = None):
         Run("cmake --build . --config {config} --target install -- {multiproc}"
             .format(config=config,
                     multiproc=FormatMultiProcs(context.numJobs, generator)))
+        return buildDir
 
 def GetCMakeVersion():
     """
@@ -594,7 +595,7 @@ def DownloadURL(url, context, force, extractDir = None,
                 else:
                     rootDir = archive.namelist()[0].split('/')[0]
                 if dontExtract != None:
-                    members = (m for m in archive.namelist() 
+                    members = (m for m in archive.namelist()
                                if not any((fnmatch.fnmatch(m, p)
                                            for p in dontExtract)))
             else:
@@ -1595,6 +1596,92 @@ def InstallMaterialX(context, force, buildArgs):
 MATERIALX = Dependency("MaterialX", InstallMaterialX, "include/MaterialXCore/Library.h")
 
 ############################################################
+# DAWN and 3rd parties
+
+DAWN_REPO = "https://dawn.googlesource.com/dawn"
+DAWN_CHROMIUM_VERSION = "5834"
+
+def InstallDawn(context, force, buildArgs):
+    with CurrentWorkingDirectory(context.srcDir):
+        srcDir = os.path.join(os.getcwd(), "dawn")
+        if force and os.path.isdir(srcDir):
+            shutil.rmtree(srcDir)
+
+        if not os.path.isdir(srcDir):
+            Run("git clone " + DAWN_REPO + " --branch chromium/" + DAWN_CHROMIUM_VERSION + " --depth 1 --single-branch")
+
+        with CurrentWorkingDirectory(srcDir):
+            pythonInfo = GetPythonInfo(context)
+            Run("{} tools/fetch_dawn_dependencies.py".format(pythonInfo[0].replace('\\', '/')))
+            cmakeOptions = [
+                '-DBUILD_SHARED_LIBS={}'.format('OFF' if Windows() else 'ON'),
+                '-DTINT_BUILD_SPV_READER=ON',
+                '-DTINT_BUILD_WGSL_WRITER=ON',
+                '-DTINT_BUILD_TESTS=OFF',
+                '-DTINT_BUILD_SAMPLES=OFF',
+                '-DDAWN_BUILD_SAMPLES=OFF'
+            ]
+            cmakeOptions += buildArgs;
+            buildDir = RunCMake(context, force, cmakeOptions)
+
+    # installation scripts are missing in dawn. Doing it manually until addressed
+    with CurrentWorkingDirectory(srcDir):
+        CopyDirectory(context, "include/dawn", "include/dawn")
+        CopyDirectory(context, "include/tint", "include/tint")
+        CopyDirectory(context, "include/webgpu", "include/webgpu")
+        CopyDirectory(context, "src/tint", "include/src/tint")
+
+    with CurrentWorkingDirectory(buildDir):
+
+        # Simply copy headers and pre-built binaries to the appropriate location.
+        # For Windows, Dawn has Release or Debug folders; For macOS, there is not
+        if Windows():
+            buildConfigFolder = "Debug/" if context.buildDebug else "Release/"
+        else:
+            buildConfigFolder = ''
+
+        # Lib files
+        CopyFiles(context, "src/dawn/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "src/dawn/common/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "src/dawn/glfw/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "src/dawn/native/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "src/dawn/platform/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "src/dawn/wire/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "third_party/spirv-tools/source/{buildConfig}*SPIRV-Tools.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "third_party/spirv-tools/source/opt/{buildConfig}*SPIRV-Tools-opt.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "third_party/abseil/absl/strings/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "third_party/abseil/absl/base/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "third_party/abseil/absl/numeric/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+        CopyFiles(context, "src/tint/{buildConfig}*.*".format(buildConfig=buildConfigFolder), "lib")
+
+        # Extra include files
+        CopyFiles(context, "gen/include/dawn/*.*", "include/dawn")
+
+DAWN = Dependency("Dawn", InstallDawn, "include/dawn/webgpu_cpp.h")
+
+############################################################
+# shaderc
+
+SHADERC_URL = "https://github.com/google/shaderc/archive/refs/tags/v2023.2.zip"
+
+def InstallShaderc(context, force, buildArgs):
+    with CurrentWorkingDirectory(DownloadURL(SHADERC_URL, context, force)):
+        pythonInfo = GetPythonInfo(context)
+        Run("{} ./utils/git-sync-deps".format(pythonInfo[0]))
+        cmakeOptions = [
+            '-DSHADERC_SKIP_TESTS=ON',
+            '-DSHADERC_SKIP_EXAMPLES=ON',
+            '-DSHADERC_SKIP_COPYRIGHT_CHECK=ON'
+        ]
+
+        cmakeOptions += buildArgs
+
+        RunCMake(context, force, cmakeOptions)
+
+
+SHADERC = Dependency("Shaderc", InstallShaderc, "include/shaderc/shaderc.hpp")
+
+############################################################
 # Embree
 # For MacOS we use version 3.13.3 to include a fix from Intel
 # to build on Apple Silicon.
@@ -1798,6 +1885,9 @@ def InstallUSD(context, force, buildArgs):
         extraArgs.append('-DBoost_NO_SYSTEM_PATHS=True')
         extraArgs += buildArgs
 
+        if context.dawn:
+            extraArgs.append('-DPXR_ENABLE_WEBGPU_SUPPORT=ON')
+
         RunCMake(context, force, extraArgs)
 
 USD = Dependency("USD", InstallUSD, "include/pxr/pxr.h")
@@ -1929,6 +2019,10 @@ if MacOS():
                        default=codesignDefault, action="store_true",
                        help=("Enable code signing for macOS builds "
                              "(defaults to enabled on Apple Silicon)"))
+
+subgroup = group.add_mutually_exclusive_group()
+subgroup.add_argument("--dawn", dest="dawn", action="store_true",
+                    help="Build for dawn")
 
 if Linux():
     group.add_argument("--use-cxx11-abi", type=int, choices=[0, 1],
@@ -2143,6 +2237,7 @@ class InstallContext:
         # CMake generator and toolset
         self.cmakeGenerator = args.generator
         self.cmakeToolset = args.toolset
+        self.dawn = args.dawn
 
         # Number of jobs
         self.numJobs = args.jobs
@@ -2243,11 +2338,11 @@ class InstallContext:
         self.buildMaterialX = args.build_materialx
 
         # - Python docs
-        self.buildPythonDocs = args.build_python_docs        
+        self.buildPythonDocs = args.build_python_docs
 
     def GetBuildArguments(self, dep):
         return self.buildArgs.get(dep.name.lower(), [])
-       
+
     def ForceBuildDependency(self, dep):
         # Never force building a Python dependency, since users are required
         # to build these dependencies themselves.
@@ -2282,6 +2377,9 @@ if extraPythonPaths:
 # Determine list of dependencies that are required based on options
 # user has selected.
 requiredDependencies = [ZLIB, BOOST, TBB]
+
+if context.dawn:
+    requiredDependencies += [DAWN, SHADERC]
 
 if context.buildAlembic:
     if context.enableHDF5:
@@ -2321,6 +2419,10 @@ if context.buildUsdview:
 # our libraries against.
 if Linux():
     requiredDependencies.remove(ZLIB)
+
+# TODO: support to DAWN on Linux
+if Linux() and DAWN in requiredDependencies:
+    requiredDependencies.remove(DAWN)
 
 # Error out if user is building monolithic library on windows with draco plugin
 # enabled. This currently results in missing symbols.
@@ -2408,7 +2510,7 @@ if context.buildDocs:
                    "PATH")
         sys.exit(1)
 
-# Require having built both Python support and Doxygen docs before we can 
+# Require having built both Python support and Doxygen docs before we can
 # build Python docs
 if context.buildPythonDocs:
     if not context.buildDocs:
@@ -2416,7 +2518,7 @@ if context.buildPythonDocs:
         sys.exit(1)
     if not context.buildPython:
         PrintError("Cannot build Python docs when Python support is disabled.")
-        sys.exit(1)        
+        sys.exit(1)
 
 if PYSIDE in requiredDependencies:
     # Special case - we are given the PYSIDEUICBINARY as cmake arg.
@@ -2455,7 +2557,8 @@ Building with settings:
   3rd-party install directory   {instDir}
   Build directory               {buildDir}
   CMake generator               {cmakeGenerator}
-  CMake toolset                 {cmakeToolset}
+  CMake toolset                 {cmakeToolset}  
+  DAWN                          {dawn}
   Downloader                    {downloader}
 
   Building                      {buildType}
@@ -2517,6 +2620,7 @@ summaryMsg = summaryMsg.format(
                     else context.cmakeGenerator),
     cmakeToolset=("Default" if not context.cmakeToolset
                   else context.cmakeToolset),
+    dawn=("Enabled" if context.dawn else "Disabled"),
     downloader=(context.downloaderName),
     dependencies=("None" if not dependenciesToBuild else 
                   ", ".join([d.name for d in dependenciesToBuild])),
