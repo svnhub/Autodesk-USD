@@ -91,6 +91,11 @@ void MyExit()
     emscripten_force_exit(0);
 }
 
+void reload(pxr::UsdStage& self){
+    self.Reload();
+}
+
+
 EMSCRIPTEN_BINDINGS(UsdStage) {
     register_vector<float>("VectorFloat");
     register_vector<pxr::SdfLayerHandle>("VectorSdfLayerHandle");
@@ -115,6 +120,7 @@ EMSCRIPTEN_BINDINGS(UsdStage) {
     .function("DefinePrim", &pxr::UsdStage::DefinePrim)
     .function("Download", &download)
     .function("Export", &Export)
+    .function("Reload", &reload)
     .function("GetPrimAtPath", &pxr::UsdStage::GetPrimAtPath)
     .function("SetDefaultPrim", &pxr::UsdStage::SetDefaultPrim)
     .function("OverridePrim", &pxr::UsdStage::OverridePrim)
