@@ -45,24 +45,16 @@ add_resources(ar)
 add_resources(usdGeom)
 add_resources(ndr)
 
-list(APPEND RESOURCE_PARAMETERS "--preload-file ${PROJECT_BINARY_DIR}/plugins_plugInfo.json@/usd/plugInfo.json")
-
-if(PXR_EMSCRIPTEN_NODE)
-  list(TRANSFORM RESOURCE_PARAMETERS REPLACE "-preload" "-embed")
-endif()
+list(APPEND RESOURCE_PARAMETERS "--preload-file ${PROJECT_BINARY_DIR}/plugins_plugInfo.json@/usd/plugInfo.json -s ENVIRONMENT=web,worker -s SINGLE_FILE=1 -s EXPORT_ES6=1 -s MODULARIZE=1 -s PTHREAD_POOL_SIZE=16")
+list(TRANSFORM RESOURCE_PARAMETERS REPLACE "-preload" "-embed")
 message("RESOURCE LIST ${RESOURCE_PARAMETERS}")
 
 set(BUILD_FILES
     ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.js
-    ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.wasm
     ${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.worker.js
     ${CMAKE_CURRENT_SOURCE_DIR}/testenv/test.html
     ${CMAKE_CURRENT_SOURCE_DIR}/js/ThreeJsRenderDelegate.js
 )
-
-if(NOT PXR_EMSCRIPTEN_NODE)
-    list(APPEND BUILD_FILES "${CMAKE_CURRENT_BINARY_DIR}/${BINDINGS_NAME}.data")
-endif()
 
 pxr_cpp_bin(${BINDINGS_NAME}
   LIBRARIES
