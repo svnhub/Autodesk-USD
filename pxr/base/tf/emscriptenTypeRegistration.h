@@ -67,7 +67,7 @@
       namespace internal { \
           template<> \
           struct BindingType<TYPE> { \
-              typedef internal::EM_VAL WireType; \
+              typedef EM_VAL WireType; \
               static WireType toWireType(const TYPE& value) { \
 
 #define EMSCRIPTEN_REGISTER_TYPE_CONVERSION_END(TYPE) \

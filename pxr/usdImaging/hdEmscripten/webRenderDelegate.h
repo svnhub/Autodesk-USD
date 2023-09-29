@@ -20,6 +20,30 @@
 
 #include <emscripten/bind.h>
 
+typedef union em_variant_val
+{
+  int i;
+  float f;
+  double d;
+  void *vp;
+  char *cp;
+} em_variant_val;
+#define EM_QUEUED_CALL_MAX_ARGS 8
+typedef struct em_queued_call
+{
+  int functionEnum;
+  void *functionPtr;
+  int operationDone;
+  em_variant_val args[EM_QUEUED_CALL_MAX_ARGS];
+  em_variant_val returnValue;
+  // If true, the caller has "detached" itself from this call
+  // object and the Emscripten main runtime thread should free up
+  // this em_queued_call object after it has been executed. If
+  // false, the caller is in control of the memory.
+  int calleeDelete;
+} em_queued_call;
+
+
 PXR_NAMESPACE_OPEN_SCOPE
 
 class WebRenderDelegate final : public HdRenderDelegate
